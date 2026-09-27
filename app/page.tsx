@@ -546,6 +546,7 @@ export default function Home() {
       respectReducedMotion: true,
     });
 
+    lenis.on("scroll", ScrollTrigger.update);
     const tick = (time:number) => lenis.raf(time * 1000);
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
@@ -558,7 +559,7 @@ export default function Home() {
     window.addEventListener("pointermove",onMove,{passive:true});
 
     const sections=Array.from(document.querySelectorAll<HTMLElement>("section[id]"));
-    const sectionMap:Record<string,number>={top:0,works:1,about:2,contact:4};
+    const sectionMap:Record<string,number>={top:0,works:1,about:2,skills:3,contact:4};
     const sceneObservers=sections.map((section)=>{
       const io=new IntersectionObserver((entries)=>{
         entries.forEach((entry)=>{
@@ -669,6 +670,7 @@ export default function Home() {
         <nav className="topnav">
           <a href="#works">Works</a>
           <a href="#about">About</a>
+          <a href="#skills">Skills</a>
           <a href="#contact">Contact</a>
         </nav>
       </header>
@@ -758,10 +760,14 @@ export default function Home() {
                 const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
                 event.currentTarget.style.setProperty("--tilt-x", `${y * -4}deg`);
                 event.currentTarget.style.setProperty("--tilt-y", `${x * 5}deg`);
+                event.currentTarget.style.setProperty("--px", `${x * 18}px`);
+                event.currentTarget.style.setProperty("--py", `${y * 18}px`);
               }}
               onPointerLeave={(event) => {
                 event.currentTarget.style.setProperty("--tilt-x", "0deg");
                 event.currentTarget.style.setProperty("--tilt-y", "0deg");
+                event.currentTarget.style.setProperty("--px", "0px");
+                event.currentTarget.style.setProperty("--py", "0px");
               }}
             >
               <ProjectVisual project={selected} />
@@ -809,7 +815,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="skillsSection sectionShell">
+      <section id="skills" className="skillsSection sectionShell">
         <div className="sectionHead">
           <span className="sectionNumber">03</span>
           <div>
