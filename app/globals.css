@@ -1508,3 +1508,258 @@ html,body{overscroll-behavior-y:none}
     font-size:8px;
   }
 }
+
+
+/* Cinematic custom scroll rail */
+html{
+  scrollbar-width:none;
+}
+html::-webkit-scrollbar{
+  width:0;
+  height:0;
+}
+.scrollRail{
+  position:fixed;
+  top:14vh;
+  right:18px;
+  bottom:102px;
+  width:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:80;
+  pointer-events:none;
+  opacity:.94;
+}
+.scrollRailLabel{
+  position:absolute;
+  top:-22px;
+  right:0;
+  color:rgba(70,68,63,.56);
+  font:7px/1 "DM Mono",monospace;
+  letter-spacing:.18em;
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+}
+.scrollRailTrack{
+  position:relative;
+  width:2px;
+  height:100%;
+  border-radius:999px;
+  background:
+    linear-gradient(180deg,
+      rgba(15,15,15,.10),
+      rgba(255,74,10,.18) 44%,
+      rgba(15,15,15,.10)
+    );
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.35),
+    0 0 16px rgba(255,74,10,.05);
+  overflow:visible;
+}
+.scrollRailTrack::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:repeating-linear-gradient(
+    180deg,
+    transparent 0 9px,
+    rgba(11,11,11,.22) 9px 10px
+  );
+  opacity:.45;
+  animation:scrollRailScan 3.2s linear infinite;
+}
+.scrollRailFill{
+  position:absolute;
+  inset:0 0 auto;
+  width:100%;
+  height:calc(var(--scroll-progress) * 100%);
+  min-height:2px;
+  border-radius:inherit;
+  transform-origin:top center;
+  background:linear-gradient(180deg,#111 0%,var(--accent) 48%,#ff9a73 100%);
+  box-shadow:
+    0 0 7px rgba(255,74,10,.48),
+    0 0 18px rgba(255,74,10,.18);
+  transition:height .18s cubic-bezier(.22,.61,.36,1);
+}
+.scrollRailFill::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  width:9px;
+  height:9px;
+  transform:translate(-50%,-50%);
+  border:1px solid rgba(17,17,17,.75);
+  border-radius:50%;
+  background:rgba(255,244,238,.88);
+  box-shadow:
+    0 0 0 4px rgba(255,74,10,.06),
+    0 0 15px rgba(255,74,10,.42);
+}
+.scrollRailFill::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:8px;
+  height:8px;
+  transform:translate(-50%,50%);
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:
+    0 0 8px rgba(255,74,10,.9),
+    0 0 22px rgba(255,74,10,.5);
+  animation:scrollRailPulse 1.7s ease-in-out infinite;
+}
+.scrollRailPulse{
+  position:absolute;
+  left:50%;
+  top:calc(var(--scroll-progress) * 100%);
+  width:22px;
+  height:22px;
+  transform:translate(-50%,-50%) scale(.55);
+  border:1px solid rgba(255,74,10,.25);
+  border-radius:50%;
+  opacity:.8;
+  animation:scrollRailRipple 1.9s ease-out infinite;
+}
+.scrollRailEnd{
+  position:absolute;
+  left:50%;
+  bottom:-74px;
+  width:58px;
+  height:58px;
+  transform:translateX(-50%);
+  display:grid;
+  place-items:center;
+}
+.scrollRailEnd::before{
+  content:"";
+  position:absolute;
+  inset:4px;
+  border:1px solid rgba(17,17,17,.14);
+  border-radius:50%;
+  transform:rotate(0deg);
+  animation:scrollRailOrbit 7s linear infinite;
+}
+.scrollRailEndGlow{
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,74,10,.13),transparent 68%);
+  filter:blur(7px);
+}
+.scrollRailSound{
+  position:relative;
+  z-index:2;
+  pointer-events:auto;
+}
+.scrollRailSound .soundToggle{
+  width:50px;
+  min-width:50px;
+  height:50px;
+  min-height:50px;
+  margin:0;
+  padding:0;
+  justify-content:center;
+  flex-direction:column;
+  gap:2px;
+  border:1px solid rgba(17,17,17,.26);
+  border-radius:50%;
+  background:rgba(238,234,226,.86);
+  color:var(--ink);
+  box-shadow:
+    0 12px 30px rgba(11,11,11,.10),
+    0 0 0 5px rgba(255,74,10,.035);
+  backdrop-filter:blur(14px);
+  font-size:6px;
+  letter-spacing:.08em;
+  transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease,background .3s ease;
+}
+.scrollRailSound .soundToggle:hover,
+.scrollRailSound .soundToggle.isOn{
+  transform:scale(1.09);
+  border-color:rgba(255,74,10,.68);
+  background:rgba(255,247,243,.96);
+  box-shadow:
+    0 16px 34px rgba(11,11,11,.13),
+    0 0 0 8px rgba(255,74,10,.055),
+    0 0 20px rgba(255,74,10,.12);
+}
+.scrollRailSound .soundBars{
+  width:15px;
+  height:12px;
+  gap:2px;
+}
+.scrollRailSound .soundBars i{
+  width:2px;
+}
+.scrollRailSound .soundToggle::after,
+.scrollRailSound .soundToggle:not(.isOn)::after{
+  content:none!important;
+  display:none!important;
+}
+@keyframes scrollRailScan{
+  to{transform:translateY(10px)}
+}
+@keyframes scrollRailPulse{
+  0%,100%{transform:translate(-50%,50%) scale(.8);opacity:.7}
+  50%{transform:translate(-50%,50%) scale(1.45);opacity:1}
+}
+@keyframes scrollRailRipple{
+  0%{transform:translate(-50%,-50%) scale(.45);opacity:.65}
+  75%,100%{transform:translate(-50%,-50%) scale(1.25);opacity:0}
+}
+@keyframes scrollRailOrbit{
+  to{transform:rotate(360deg)}
+}
+@media(max-width:950px){
+  .scrollRail{
+    right:10px;
+    top:16vh;
+    bottom:92px;
+    width:27px;
+    opacity:.82;
+  }
+}
+@media(max-width:640px){
+  .scrollRail{
+    right:6px;
+    top:17vh;
+    bottom:86px;
+    width:23px;
+  }
+  .scrollRailLabel{
+    display:none;
+  }
+  .scrollRailEnd{
+    bottom:-64px;
+    width:50px;
+    height:50px;
+  }
+  .scrollRailEnd::before{
+    inset:3px;
+  }
+  .scrollRailSound .soundToggle{
+    width:44px;
+    min-width:44px;
+    height:44px;
+    min-height:44px;
+    font-size:5px;
+  }
+  .scrollRailSound .soundBars{
+    width:13px;
+    height:10px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .scrollRailTrack::before,
+  .scrollRailFill::after,
+  .scrollRailPulse,
+  .scrollRailEnd::before{
+    animation:none;
+  }
+}
