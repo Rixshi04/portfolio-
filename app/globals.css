@@ -731,3 +731,74 @@ a:hover ~ .cursorRing{width:56px;height:56px}
   .ambientOrbs span,.contactSection::before{animation:none}
   .interactiveMesh{display:none}
 }
+
+/* Elevated interaction pass */
+:root{--scroll-progress:0;--px:0px;--py:0px}
+.topbar{transition:transform .55s cubic-bezier(.22,1,.36,1),background .3s ease}
+.heroTitle .reveal:nth-child(1){transition-delay:80ms}
+.heroTitle .reveal:nth-child(2){transition-delay:160ms}
+.heroTitle .reveal:nth-child(3){transition-delay:240ms}
+.heroTitle .word{will-change:transform}
+.heroDescription p{transform:translateY(0);transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .8s ease}
+.heroDescription.isVisible p{transform:translateY(-3px)}
+.sectionShell{will-change:contents}
+.workLink{perspective:700px}
+.workTitle,.workType,.workYear,.workNo,.workArrow{will-change:transform}
+.workRow.isActive .workTitle{transform:translateX(12px) skewX(-1deg)}
+.workRow.isActive .workType{transform:translateX(4px);transition:transform .35s ease}
+.workRow.isActive .workYear{transform:translateX(-3px);transition:transform .35s ease}
+.selectedFrame{overflow:visible;background:transparent;box-shadow:none}
+.selectedFrame::after{
+  content:"";
+  position:absolute;
+  inset:4%;
+  z-index:-1;
+  border:1px solid rgba(11,11,11,.09);
+  transform:translate(calc(var(--px)*-.25),calc(var(--py)*-.25)) scale(.98);
+  transition:transform .5s cubic-bezier(.22,1,.36,1);
+}
+.selectedFrame:hover::after{transform:translate(calc(var(--px)*-.45),calc(var(--py)*-.45)) scale(1)}
+.projectVisual{
+  transform:translate3d(var(--px),var(--py),0) scale(1.02)!important;
+  transition:transform .75s cubic-bezier(.22,1,.36,1);
+  border-radius:2px;
+}
+.sketchWindow,.wirePhone,.codeChip,.sketchCursor{
+  will-change:transform;
+}
+.sketchWindow{transform:translate(calc(var(--px)*.35),calc(var(--py)*.35)) rotate(-3deg)}
+.wirePhone{transform:translate(calc(var(--px)*.65),calc(var(--py)*.65)) rotate(2deg)}
+.codeChip{transform:translate(calc(var(--px)*-.8),calc(var(--py)*-.8))}
+.sketchCursor{transform:translate(calc(var(--px)*-.6),calc(var(--py)*-.6)) rotate(-25deg)}
+.faceScanner{transform:translate(calc(var(--px)*.5),calc(var(--py)*.5))}
+.signalPanel,.pvStatus{transform:translate(calc(var(--px)*-.55),calc(var(--py)*-.55))}
+.waveform{transform:translateY(calc(var(--py)*.18))}
+.carShape{transform:translate(calc(var(--px)*.45),calc(var(--py)*.45))}
+.carGlow{transform:translate(calc(var(--px)*-.35),calc(var(--py)*-.35))}
+.priceChart{transform:translate(calc(var(--px)*-.35),calc(var(--py)*-.35))}
+.irisFlower{transform:translate(calc(var(--px)*.35),calc(var(--py)*.35))}
+.classifierNodes,.irisMetric{transform:translate(calc(var(--px)*-.45),calc(var(--py)*-.45))}
+.unemploymentChart{transform:translate(calc(var(--px)*.3),calc(var(--py)*.3))}
+.trendData{transform:translate(calc(var(--px)*-.3),calc(var(--py)*-.3))}
+
+.ambientOrbs span:nth-child(1){animation-duration:17s}
+.ambientOrbs span:nth-child(2){animation-duration:20s}
+.ambientOrbs span:nth-child(3){animation-duration:23s}
+
+.sectionShell::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.15;
+  background:radial-gradient(circle at 50% 0%,rgba(255,74,10,.06),transparent 34%);
+  transform:translateY(calc(var(--scroll-progress)*-10%));
+}
+.aboutSection,.skillsSection,.contactSection{overflow:hidden}
+
+@media (hover:hover) and (pointer:fine){
+  .topnav a,.wordmark,.workLink,.selectedLinks a,.emailButton,.magnetic{cursor:none}
+  .workRow:hover{background:rgba(11,11,11,.05)}
+  .workRow:hover .workTitle{letter-spacing:-.065em}
+  .selectedFrame:hover .projectVisual{filter:saturate(1.15) contrast(1.04)}
+}
