@@ -365,6 +365,185 @@ function InteractiveMesh() {
   return <canvas className="interactiveMesh" ref={canvasRef} aria-hidden="true" />;
 }
 
+function InteractiveSound() {
+  const audioRef = useRef<{
+    ctx: AudioContext;
+    master: GainNode;
+    filter: BiquadFilterNode;
+    pan: StereoPannerNode;
+    padGain: GainNode;
+    started: boolean;
+    lastNote: number;
+    lastTrigger: number;
+  } | null>(null);
+  const [enabled, setEnabled] = useState(false);
+
+  const createAudio = () => {
+    if (audioRef.current) return audioRef.current;
+
+    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return null;
+
+    const ctx = new AudioCtor();
+    const master = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    const pan = ctx.createStereoPanner();
+    const padGain = ctx.createGain();
+
+    master.gain.value = 0.11;
+    filter.type = "lowpass";
+    filter.frequency.value = 2600;
+    filter.Q.value = 0.45;
+    pan.pan.value = 0;
+    padGain.gain.value = 0;
+
+    padGain.connect(filter);
+    filter.connect(pan);
+    pan.connect(master);
+    master.connect(ctx.destination);
+
+    const padA = ctx.createOscillator();
+    const padB = ctx.createOscillator();
+    padA.type = "sine";
+    padB.type = "triangle";
+    padA.frequency.value = 146.83;
+    padB.frequency.value = 220;
+    padA.detune.value = -4;
+    padB.detune.value = 5;
+    padA.connect(padGain);
+    padB.connect(padGain);
+    padA.start();
+    padB.start();
+
+    audioRef.current = {
+      ctx,
+      master,
+      filter,
+      pan,
+      padGain,
+      started: false,
+      lastNote: -1,
+      lastTrigger: 0,
+    };
+    return audioRef.current;
+  };
+
+  const startSound = async () => {
+    const audio = createAudio();
+    if (!audio) return;
+    if (audio.ctx.state === "suspended") await audio.ctx.resume();
+
+    const now = audio.ctx.currentTime;
+    audio.padGain.gain.cancelScheduledValues(now);
+    audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
+    audio.padGain.gain.linearRampToValueAtTime(0.032, now + 1.6);
+    audio.started = true;
+    setEnabled(true);
+  };
+
+  const stopSound = () => {
+    const audio = audioRef.current;
+    if (!audio) {
+      setEnabled(false);
+      return;
+    }
+    const now = audio.ctx.currentTime;
+    audio.padGain.gain.cancelScheduledValues(now);
+    audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
+    audio.padGain.gain.linearRampToValueAtTime(0, now + 0.45);
+    audio.started = false;
+    setEnabled(false);
+  };
+
+  const toggleSound = async () => {
+    if (enabled) stopSound();
+    else await startSound();
+  };
+
+  useEffect(() => {
+    const onPointerDown = () => {
+      const audio = audioRef.current;
+      if (audio && audio.ctx.state === "suspended") audio.ctx.resume();
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const audio = audioRef.current;
+      if (!audio || !audio.started) return;
+
+      const x = event.clientX / Math.max(1, innerWidth);
+      const y = event.clientY / Math.max(1, innerHeight);
+      const panValue = x * 2 - 1;
+      const brightness = 900 + (1 - y) * 4200;
+      audio.pan.pan.setTargetAtTime(panValue * 0.42, audio.ctx.currentTime, 0.08);
+      audio.filter.frequency.setTargetAtTime(brightness, audio.ctx.currentTime, 0.16);
+
+      const scale = [0, 2, 4, 7, 9, 12];
+      const octave = y < 0.34 ? 2 : y < 0.67 ? 1 : 0;
+      const degree = Math.min(scale.length - 1, Math.floor(x * scale.length));
+      const midi = 50 + octave * 12 + scale[degree];
+      const nowMs = performance.now();
+
+      if (Math.abs(audio.lastNote - midi) < 1 || nowMs - audio.lastTrigger < 155) return;
+
+      audio.lastNote = midi;
+      audio.lastTrigger = nowMs;
+
+      const now = audio.ctx.currentTime;
+      const frequency = 440 * Math.pow(2, (midi - 69) / 12);
+
+      const osc = audio.ctx.createOscillator();
+      const noteGain = audio.ctx.createGain();
+      const noteFilter = audio.ctx.createBiquadFilter();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frequency, now);
+      osc.detune.setValueAtTime((x - 0.5) * 16, now);
+
+      noteFilter.type = "lowpass";
+      noteFilter.frequency.setValueAtTime(1300 + (1 - y) * 3000, now);
+      noteFilter.Q.value = 0.7;
+
+      noteGain.gain.setValueAtTime(0, now);
+      noteGain.gain.linearRampToValueAtTime(0.06, now + 0.035);
+      noteGain.gain.exponentialRampToValueAtTime(0.018, now + 0.22);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
+
+      osc.connect(noteFilter);
+      noteFilter.connect(noteGain);
+      noteGain.connect(audio.filter);
+      osc.start(now);
+      osc.stop(now + 0.75);
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      const audio = audioRef.current;
+      if (audio) {
+        audio.master.gain.cancelScheduledValues(audio.ctx.currentTime);
+        audio.master.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.08);
+        window.setTimeout(() => audio.ctx.close(), 180);
+      }
+    };
+  }, []);
+
+  return (
+    <button
+      type="button"
+      className={`soundToggle ${enabled ? "isOn" : ""}`}
+      onClick={toggleSound}
+      aria-label={enabled ? "Mute ambient sound" : "Enable ambient sound"}
+      title={enabled ? "Mute ambient sound" : "Enable ambient sound"}
+    >
+      <span className="soundBars" aria-hidden="true"><i /><i /><i /><i /></span>
+      <span>{enabled ? "SOUND ON" : "SOUND OFF"}</span>
+    </button>
+  );
+}
+
 function SolarSystemBackdrop() {
   return (
     <div className="solarSystem" aria-hidden="true">
@@ -736,6 +915,7 @@ export default function Home() {
           <a href="#about">About</a>
           <a href="#skills">Skills</a>
           <a href="#contact">Contact</a>
+          <InteractiveSound />
         </nav>
       </header>
 
