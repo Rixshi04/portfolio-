@@ -104,7 +104,8 @@ function InteractiveMesh() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
+    const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+    if (reduce || mobile) return;
 
     const gl = canvas.getContext("webgl2", {
       alpha: true,
@@ -415,18 +416,21 @@ const createSharedAudio = () => {
   pan.connect(master);
   master.connect(ctx.destination);
 
-  const padA = ctx.createOscillator();
-  const padB = ctx.createOscillator();
-  padA.type = "sine";
-  padB.type = "triangle";
-  padA.frequency.value = 146.83;
-  padB.frequency.value = 220;
-  padA.detune.value = -4;
-  padB.detune.value = 5;
-  padA.connect(padGain);
-  padB.connect(padGain);
-  padA.start();
-  padB.start();
+  const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+  if (!mobile) {
+    const padA = ctx.createOscillator();
+    const padB = ctx.createOscillator();
+    padA.type = "sine";
+    padB.type = "triangle";
+    padA.frequency.value = 146.83;
+    padB.frequency.value = 220;
+    padA.detune.value = -4;
+    padB.detune.value = 5;
+    padA.connect(padGain);
+    padB.connect(padGain);
+    padA.start();
+    padB.start();
+  }
 
   sharedAudio = {
     ctx,
@@ -461,23 +465,19 @@ const playSharedNote = (
 
   const osc = audio.ctx.createOscillator();
   const noteGain = audio.ctx.createGain();
-  const noteFilter = audio.ctx.createBiquadFilter();
 
   osc.type = "sine";
   osc.frequency.setValueAtTime(midiToFrequency(midi), now);
   osc.detune.setValueAtTime(detune, now);
 
-  noteFilter.type = "lowpass";
-  noteFilter.frequency.setValueAtTime(filterFrequency, now);
-  noteFilter.Q.value = 0.7;
+  audio.filter.frequency.setTargetAtTime(filterFrequency, now, 0.08);
 
   noteGain.gain.setValueAtTime(0.0001, now);
-  noteGain.gain.exponentialRampToValueAtTime(gainAmount, now + 0.035);
-  noteGain.gain.exponentialRampToValueAtTime(0.018, now + Math.min(.26, duration * .35));
+  noteGain.gain.exponentialRampToValueAtTime(gainAmount, now + 0.028);
+  noteGain.gain.exponentialRampToValueAtTime(0.012, now + Math.min(.18, duration * .3));
   noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  osc.connect(noteFilter);
-  noteFilter.connect(noteGain);
+  osc.connect(noteGain);
   noteGain.connect(audio.filter);
   osc.start(now);
   osc.stop(now + duration + 0.03);
@@ -489,17 +489,20 @@ const startSharedSound = async () => {
   if (audio.ctx.state === "suspended") await audio.ctx.resume();
 
   const now = audio.ctx.currentTime;
-  audio.padGain.gain.cancelScheduledValues(now);
-  audio.padGain.gain.setValueAtTime(Math.max(0.0001, audio.padGain.gain.value), now);
-  audio.padGain.gain.linearRampToValueAtTime(0.12, now + 1.15);
+  const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+  if (!mobile) {
+    audio.padGain.gain.cancelScheduledValues(now);
+    audio.padGain.gain.setValueAtTime(Math.max(0.0001, audio.padGain.gain.value), now);
+    audio.padGain.gain.linearRampToValueAtTime(0.12, now + 1.15);
+  }
 
   const osc = audio.ctx.createOscillator();
   const noteGain = audio.ctx.createGain();
   osc.type = "sine";
   osc.frequency.setValueAtTime(261.63, now);
   noteGain.gain.setValueAtTime(0.0001, now);
-  noteGain.gain.exponentialRampToValueAtTime(0.15, now + 0.025);
-  noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+  noteGain.gain.exponentialRampToValueAtTime(mobile ? 0.11 : 0.15, now + 0.025);
+  noteGain.gain.exponentialRampToValueAtTime(0.001, now + (mobile ? 0.42 : 0.9));
   osc.connect(noteGain);
   noteGain.connect(audio.master);
   osc.start(now);
@@ -578,8 +581,8 @@ const installSharedSoundInteractions = () => {
     const magnitude = Math.abs(delta);
     const nowMs = performance.now();
     const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
-    const minDelta = mobile ? 6 : 3;
-    const minInterval = mobile ? 190 : 145;
+    const minDelta = mobile ? 8 : 3;
+    const minInterval = mobile ? 220 : 145;
 
     if (magnitude < minDelta || nowMs - audio.lastScrollTrigger < minInterval) return;
 
@@ -587,13 +590,16 @@ const installSharedSoundInteractions = () => {
       currentY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
     const directionOctave = delta < 0 ? 1 : 0;
     const scale = [0, 2, 4, 7, 9, 12];
-    const degree = Math.min(scale.length - 1, Math.floor(Math.min(1, magnitude / (mobile ? 34 : 24)) * scale.length));
+    const degree = Math.min(
+      scale.length - 1,
+      Math.floor(Math.min(1, magnitude / (mobile ? 40 : 24)) * scale.length)
+    );
     const midi = 57 + directionOctave * 12 + scale[degree];
 
     audio.lastScrollTrigger = nowMs;
     playSharedNote(midi, {
-      duration: mobile ? 0.24 : 0.42 + Math.min(0.28, magnitude / 80),
-      gain: mobile ? 0.075 : 0.10 + Math.min(0.045, magnitude / 260),
+      duration: mobile ? 0.18 : 0.42 + Math.min(0.28, magnitude / 80),
+      gain: mobile ? 0.06 : 0.10 + Math.min(0.045, magnitude / 260),
       filter: 1500 + progress * 2600,
       detune: delta < 0 ? -7 : 5,
     });
@@ -889,9 +895,12 @@ export default function Home() {
       respectReducedMotion: true,
     });
 
+    const tick = (time:number) => {
+      if (lenis) lenis.raf(time * 1000);
+    };
+
     if (lenis) {
       lenis.on("scroll", ScrollTrigger.update);
-      const tick = (time:number) => lenis.raf(time * 1000);
       gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);
     }
