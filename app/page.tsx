@@ -110,112 +110,301 @@ function WireTerrain() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
+    const gl = canvas.getContext("webgl2", {
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+
+    if (!gl) return;
+
+    const vertexShaderSource = \`#version 300 es
+      precision highp float;
+
+      layout(location = 0) in vec3 aPosition;
+
+      uniform float uTime;
+      uniform float uScroll;
+      uniform float uDepth;
+      uniform float uCameraHeight;
+      uniform float uPitch;
+      uniform float uYaw;
+      uniform float uRoll;
+      uniform vec2 uResolution;
+
+      out float vDepth;
+      out float vHeight;
+
+      float hash(vec2 p) {
+        p = fract(p * vec2(123.34, 345.45));
+        p += dot(p, p + 34.345);
+        return fract(p.x * p.y);
+      }
+
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      }
+
+      float terrainHeight(float x, float z) {
+        float valley = smoothstep(0.0, 3.8, abs(x));
+        float n1 = noise(vec2(x * 0.75, z * 0.075));
+        float n2 = noise(vec2(x * 1.6 + 19.0, z * 0.16));
+        float n3 = sin(z * 0.055 + x * 0.7) * 0.28;
+        float ridge = pow(valley, 1.25) * (1.7 + n1 * 4.8 + n2 * 2.4 + n3);
+        float floorShape = (1.0 - valley) * (0.04 + noise(vec2(x * 0.35, z * 0.045)) * 0.07);
+        return ridge + floorShape;
+      }
+
+      mat3 rotX(float a) {
+        float s = sin(a), c = cos(a);
+        return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c);
+      }
+      mat3 rotY(float a) {
+        float s = sin(a), c = cos(a);
+        return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c);
+      }
+      mat3 rotZ(float a) {
+        float s = sin(a), c = cos(a);
+        return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0);
+      }
+
+      void main() {
+        float zWrapped = mod(aPosition.z + uScroll, uDepth);
+        float z = max(0.3, zWrapped);
+        float x = aPosition.x;
+        float y = terrainHeight(x, z);
+
+        vec3 pos = vec3(x, y, z);
+        pos.y -= uCameraHeight;
+
+        mat3 camera = rotZ(uRoll) * rotX(uPitch) * rotY(uYaw);
+        pos = camera * pos;
+
+        float fov = 1.25;
+        float depth = max(0.18, pos.z);
+        float aspect = uResolution.x / max(1.0, uResolution.y);
+
+        float nx = (pos.x / (depth * fov)) / aspect;
+        float ny = (pos.y / (depth * fov));
+
+        gl_Position = vec4(nx, ny, 0.5 + depth * 0.002, 1.0);
+
+        vDepth = depth;
+        vHeight = y;
+      }
+    \`;
+
+    const fragmentShaderSource = \`#version 300 es
+      precision highp float;
+
+      uniform vec3 uColor;
+      uniform bool uFill;
+      uniform float uDepth;
+
+      in float vDepth;
+      out vec4 outColor;
+
+      void main() {
+        float fade = 1.0 - smoothstep(uDepth * 0.32, uDepth * 0.98, vDepth);
+        if (uFill) {
+          outColor = vec4(0.0, 0.0, 0.0, 1.0);
+        } else {
+          float glow = 0.45 + fade * 0.9;
+          outColor = vec4(uColor * glow, 1.0);
+        }
+      }
+    \`;
+
+    const createShader = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) throw new Error("Unable to create shader");
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader) || "Shader compilation failed");
+      }
+      return shader;
+    };
+
+    const program = gl.createProgram();
+    if (!program) throw new Error("Unable to create WebGL program");
+
+    const vs = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+    const fs = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program) || "Program linking failed");
+    }
+
+    const gridX = 42;
+    const gridZ = 132;
+    const width = 18;
+    const depth = 92;
+
+    const positions: number[] = [];
+    for (let z = 0; z < gridZ; z += 1) {
+      const tz = z / (gridZ - 1);
+      const worldZ = 0.6 + tz * depth;
+      for (let x = 0; x < gridX; x += 1) {
+        const tx = x / (gridX - 1);
+        const worldX = (tx - 0.5) * width;
+        positions.push(worldX, 0, worldZ);
+      }
+    }
+
+    const vao = gl.createVertexArray();
+    const positionBuffer = gl.createBuffer();
+    if (!vao || !positionBuffer) throw new Error("Unable to create geometry");
+
+    gl.bindVertexArray(vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+    const indexData: number[] = [];
+    for (let z = 0; z < gridZ - 1; z += 1) {
+      for (let x = 0; x < gridX - 1; x += 1) {
+        const a = z * gridX + x;
+        const b = a + 1;
+        const c = a + gridX;
+        const d = c + 1;
+        indexData.push(a, c, b, b, c, d);
+      }
+    }
+
+    const indexBuffer = gl.createBuffer();
+    if (!indexBuffer) throw new Error("Unable to create index buffer");
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indexData), gl.STATIC_DRAW);
+
+    const lineData: number[] = [];
+    for (let z = 0; z < gridZ; z += 1) {
+      for (let x = 0; x < gridX - 1; x += 1) {
+        const a = z * gridX + x;
+        lineData.push(a, a + 1);
+      }
+    }
+    for (let x = 0; x < gridX; x += 1) {
+      for (let z = 0; z < gridZ - 1; z += 1) {
+        const a = z * gridX + x;
+        lineData.push(a, a + gridX);
+      }
+    }
+
+    const lineIndexBuffer = gl.createBuffer();
+    if (!lineIndexBuffer) throw new Error("Unable to create line index buffer");
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(lineData), gl.STATIC_DRAW);
+
+    const uTime = gl.getUniformLocation(program, "uTime");
+    const uScroll = gl.getUniformLocation(program, "uScroll");
+    const uDepth = gl.getUniformLocation(program, "uDepth");
+    const uCameraHeight = gl.getUniformLocation(program, "uCameraHeight");
+    const uPitch = gl.getUniformLocation(program, "uPitch");
+    const uYaw = gl.getUniformLocation(program, "uYaw");
+    const uRoll = gl.getUniformLocation(program, "uRoll");
+    const uResolution = gl.getUniformLocation(program, "uResolution");
+    const uColor = gl.getUniformLocation(program, "uColor");
+    const uFill = gl.getUniformLocation(program, "uFill");
+
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     let raf = 0;
-    let time = 0;
-    let pointerX = 0;
-    let pointerY = 0;
+    let last = performance.now();
+    let scroll = 0;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.max(1, Math.floor(rect.width * dpr));
       canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      gl.viewport(0, 0, canvas.width, canvas.height);
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      pointerX = event.clientX / window.innerWidth - 0.5;
-      pointerY = event.clientY / window.innerHeight - 0.5;
+    const pointerMove = (event: PointerEvent) => {
+      pointer.tx = (event.clientX / window.innerWidth - 0.5);
+      pointer.ty = (event.clientY / window.innerHeight - 0.5);
     };
 
-    const draw = () => {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      time += 0.007;
+    const draw = (now: number) => {
+      const dt = Math.min(0.04, (now - last) / 1000);
+      last = now;
 
-      ctx.clearRect(0, 0, width, height);
+      pointer.x += (pointer.tx - pointer.x) * Math.min(1, dt * 5.5);
+      pointer.y += (pointer.ty - pointer.y) * Math.min(1, dt * 5.5);
 
-      const sky = ctx.createLinearGradient(0, 0, 0, height);
-      sky.addColorStop(0, "#020202");
-      sky.addColorStop(0.62, "#050505");
-      sky.addColorStop(1, "#090909");
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, width, height);
+      const idleSway = Math.sin(now * 0.00025) * 0.045;
+      scroll = (scroll + dt * 17) % depth;
 
-      const horizonY = height * 0.5 + pointerY * 22;
-      const sunX = width * 0.5 + pointerX * 100;
-      const sunY = horizonY - height * 0.01;
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(gl.BACK);
 
-      const glow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, width * 0.22);
-      glow.addColorStop(0, "rgba(255,92,42,.3)");
-      glow.addColorStop(0.3, "rgba(255,92,42,.12)");
-      glow.addColorStop(1, "rgba(255,92,42,0)");
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, width, height);
+      gl.useProgram(program);
+      gl.bindVertexArray(vao);
 
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.strokeStyle = "rgba(255,64,26,.24)";
-      ctx.lineWidth = 1;
+      gl.uniform1f(uTime, now * 0.001);
+      gl.uniform1f(uScroll, scroll);
+      gl.uniform1f(uDepth, depth);
+      gl.uniform1f(uCameraHeight, 7.2);
+      gl.uniform1f(uPitch, -0.18 + pointer.y * 0.11);
+      gl.uniform1f(uYaw, pointer.x * -0.15 + idleSway);
+      gl.uniform1f(uRoll, pointer.x * 0.08);
+      gl.uniform2f(uResolution, canvas.clientWidth, canvas.clientHeight);
 
-      for (let y = 0; y < 16; y++) {
-        const t = y / 15;
-        const py = horizonY + Math.pow(t, 1.65) * height * 0.65;
-        ctx.beginPath();
-        ctx.moveTo(0, py);
-        for (let x = 0; x <= width; x += 14) {
-          const wave = Math.sin(x * 0.004 + time * 1.7 + y * 0.4) * (1 + t * 7);
-          ctx.lineTo(x, py + wave);
-        }
-        ctx.stroke();
-      }
+      // Terrain body pass: background-colored triangles write depth,
+      // creating the hidden-line/occlusion behavior of the original visual.
+      gl.uniform3f(uColor, 0.0, 0.0, 0.0);
+      gl.uniform1i(uFill, 1);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      gl.drawElements(gl.TRIANGLES, indexData.length, gl.UNSIGNED_INT, 0);
 
-      const horizonSpacing = 52;
-      for (let x = -width * 1.4; x <= width * 1.4; x += horizonSpacing) {
-        const center = width / 2 + pointerX * 180;
-        ctx.beginPath();
-        ctx.moveTo(center, horizonY);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
+      // Wire pass.
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.uniform3f(uColor, 0.694, 0.169, 0.0);
+      gl.uniform1i(uFill, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
+      gl.lineWidth(1);
+      gl.drawElements(gl.LINES, lineData.length, gl.UNSIGNED_INT, 0);
 
-      ctx.strokeStyle = "rgba(255,80,34,.34)";
-      ctx.beginPath();
-      ctx.moveTo(0, horizonY);
-      ctx.lineTo(width, horizonY);
-      ctx.stroke();
-
-      ctx.globalAlpha = 0.45;
-      for (let band = 0; band < 9; band++) {
-        const offset = Math.sin(time * 0.9 + band) * 9;
-        const radius = 20 + band * 10;
-        ctx.beginPath();
-        ctx.arc(sunX, sunY, radius + offset, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      const vignette = ctx.createRadialGradient(width / 2, height / 2, height * 0.15, width / 2, height / 2, height * 0.8);
-      vignette.addColorStop(0, "rgba(0,0,0,0)");
-      vignette.addColorStop(1, "rgba(0,0,0,.72)");
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, width, height);
+      gl.disable(gl.BLEND);
 
       raf = requestAnimationFrame(draw);
     };
 
     resize();
-    draw();
+    raf = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointermove", pointerMove);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointermove", pointerMove);
+      gl.deleteBuffer(positionBuffer);
+      gl.deleteBuffer(indexBuffer);
+      gl.deleteBuffer(lineIndexBuffer);
+      gl.deleteVertexArray(vao);
+      gl.deleteProgram(program);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
     };
   }, []);
 
