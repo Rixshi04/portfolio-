@@ -94,6 +94,211 @@ const skills = [
   "React", "TypeScript", "Tailwind CSS", "Docker", "AWS", "Git",
 ];
 
+
+function InteractiveMesh() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const gl = canvas.getContext("webgl2", {
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
+    if (!gl) return;
+
+    const vertex = `#version 300 es
+      precision highp float;
+      layout(location=0) in vec2 aPosition;
+      uniform float uTime;
+      uniform float uScroll;
+      uniform vec2 uPointer;
+      uniform vec2 uResolution;
+      uniform float uScale;
+      out float vDepth;
+      out float vGlow;
+
+      float hash(vec2 p){
+        p = fract(p * vec2(127.1,311.7));
+        p += dot(p,p + 34.7);
+        return fract(p.x*p.y);
+      }
+
+      float noise(vec2 p){
+        vec2 i=floor(p);
+        vec2 f=fract(p);
+        f=f*f*(3.0-2.0*f);
+        float a=hash(i);
+        float b=hash(i+vec2(1.0,0.0));
+        float c=hash(i+vec2(0.0,1.0));
+        float d=hash(i+vec2(1.0,1.0));
+        return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+      }
+
+      void main(){
+        vec2 p=aPosition*uScale;
+        float t=uTime*0.00042 + uScroll*2.4;
+        float n=noise(p*1.45+vec2(t*0.72,-t*0.34));
+        float wave=sin(p.x*3.2+t*2.0+n*2.4)*0.085;
+        wave+=cos(p.y*4.8-t*1.65+n*3.0)*0.05;
+        float d=distance(p,uPointer);
+        float force=exp(-d*d*3.7);
+        vec2 away=normalize(p-uPointer+vec2(0.001));
+        p+=away*force*0.09;
+        p.y+=wave+sin(p.x*8.0+t)*0.022;
+
+        float aspect=uResolution.x/max(1.0,uResolution.y);
+        float z=0.18+n*0.62;
+        vec2 q=p;
+        q.x/=aspect;
+        q/=1.0+z*0.3;
+        gl_Position=vec4(q,0.0,1.0);
+        vDepth=z;
+        vGlow=force;
+      }
+    `;
+
+    const fragment = `#version 300 es
+      precision highp float;
+      uniform vec3 uColor;
+      in float vDepth;
+      in float vGlow;
+      out vec4 outColor;
+      void main(){
+        float alpha=0.16+(1.0-vDepth)*0.56;
+        outColor=vec4(uColor*(1.0+vGlow*3.2),alpha);
+      }
+    `;
+
+    const compile=(type:number,source:string)=>{
+      const shader=gl.createShader(type);
+      if(!shader) throw new Error("shader");
+      gl.shaderSource(shader,source);
+      gl.compileShader(shader);
+      if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+        throw new Error(gl.getShaderInfoLog(shader)||"compile");
+      }
+      return shader;
+    };
+
+    const program=gl.createProgram();
+    if(!program) return;
+    const vs=compile(gl.VERTEX_SHADER,vertex);
+    const fs=compile(gl.FRAGMENT_SHADER,fragment);
+    gl.attachShader(program,vs);
+    gl.attachShader(program,fs);
+    gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS)) return;
+
+    const size=42;
+    const positions:number[]=[];
+    const indices:number[]=[];
+    for(let y=0;y<size;y++){
+      for(let x=0;x<size;x++){
+        positions.push((x/(size-1)-0.5)*2,(y/(size-1)-0.5)*2);
+      }
+    }
+    for(let y=0;y<size;y++){
+      for(let x=0;x<size-1;x++){ const a=y*size+x; indices.push(a,a+1); }
+    }
+    for(let x=0;x<size;x++){
+      for(let y=0;y<size-1;y++){ const a=y*size+x; indices.push(a,a+size); }
+    }
+
+    const vao=gl.createVertexArray();
+    const vbo=gl.createBuffer();
+    const ebo=gl.createBuffer();
+    if(!vao||!vbo||!ebo) return;
+    gl.bindVertexArray(vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ebo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(indices),gl.STATIC_DRAW);
+
+    const uTime=gl.getUniformLocation(program,"uTime");
+    const uScroll=gl.getUniformLocation(program,"uScroll");
+    const uPointer=gl.getUniformLocation(program,"uPointer");
+    const uResolution=gl.getUniformLocation(program,"uResolution");
+    const uScale=gl.getUniformLocation(program,"uScale");
+    const uColor=gl.getUniformLocation(program,"uColor");
+
+    const pointer={x:0,y:0,tx:0,ty:0};
+    const scroll={value:0,target:0};
+    let raf=0;
+    let last=performance.now();
+
+    const resize=()=>{
+      const dpr=Math.min(window.devicePixelRatio||1,1.55);
+      canvas.width=Math.max(1,Math.floor(window.innerWidth*dpr));
+      canvas.height=Math.max(1,Math.floor(window.innerHeight*dpr));
+      gl.viewport(0,0,canvas.width,canvas.height);
+    };
+    const move=(e:PointerEvent)=>{
+      pointer.tx=(e.clientX/window.innerWidth-0.5)*2;
+      pointer.ty=(0.5-e.clientY/window.innerHeight)*2;
+    };
+    const onScroll=()=>{
+      const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+      scroll.target=window.scrollY/max;
+    };
+
+    const draw=(now:number)=>{
+      const dt=Math.min(0.05,(now-last)/1000);
+      last=now;
+      pointer.x+=(pointer.tx-pointer.x)*Math.min(1,dt*4.8);
+      pointer.y+=(pointer.ty-pointer.y)*Math.min(1,dt*4.8);
+      scroll.value+=(scroll.target-scroll.value)*Math.min(1,dt*3);
+
+      gl.clearColor(0,0,0,0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      gl.useProgram(program);
+      gl.bindVertexArray(vao);
+      gl.uniform1f(uTime,now);
+      gl.uniform1f(uScroll,scroll.value);
+      gl.uniform2f(uPointer,pointer.x,pointer.y);
+      gl.uniform2f(uResolution,canvas.width,canvas.height);
+
+      gl.uniform1f(uScale,1);
+      gl.uniform3f(uColor,0.10,0.10,0.09);
+      gl.drawElements(gl.LINES,indices.length,gl.UNSIGNED_INT,0);
+
+      gl.uniform1f(uScale,1.07);
+      gl.uniform3f(uColor,1,0.26,0.04);
+      gl.drawElements(gl.LINES,indices.length,gl.UNSIGNED_INT,0);
+
+      raf=requestAnimationFrame(draw);
+    };
+
+    resize();
+    onScroll();
+    window.addEventListener("resize",resize);
+    window.addEventListener("pointermove",move,{passive:true});
+    window.addEventListener("scroll",onScroll,{passive:true});
+    raf=requestAnimationFrame(draw);
+
+    return()=>{
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize",resize);
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("scroll",onScroll);
+      gl.deleteBuffer(vbo);
+      gl.deleteBuffer(ebo);
+      gl.deleteVertexArray(vao);
+      gl.deleteProgram(program);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+    };
+  },[]);
+
+  return <canvas className="interactiveMesh" ref={canvasRef} aria-hidden="true" />;
+}
+
 function ProjectVisual({ project }: { project: Project }) {
   if (project.number === "01") {
     return (
@@ -321,6 +526,8 @@ export default function Home() {
 
   return (
     <main className={`site ${loaded ? "siteLoaded" : ""}`}>
+      <InteractiveMesh />
+      <div className="ambientOrbs" aria-hidden="true"><span/><span/><span/></div>
       <div className="loader" aria-hidden={!loaded}>
         <div className="loaderTop"><span>RISHI KUMAR</span><span>2026</span></div>
         <div className="loaderCounter">0<span>%</span></div>
