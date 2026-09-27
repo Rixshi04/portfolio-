@@ -960,3 +960,22 @@ html,body{overscroll-behavior-y:none}
 /* Hero positioning pass */
 .heroTitleWrap{transform:translateY(-5vh)}
 @media(max-width:640px){.heroTitleWrap{transform:translateY(-3vh)}}
+
+/* Clean identity typography */
+.wordmark{font-size:15px;letter-spacing:-.035em;white-space:nowrap}
+.heroName{margin:0;display:grid;gap:0;font-size:clamp(96px,14.6vw,250px);line-height:.79;letter-spacing:-.055em;font-weight:700}
+.heroName .reveal{overflow:visible}
+.heroName .reveal>span{display:block}
+.heroHeadline{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px 28px;margin-top:24px;color:#3f3e39;font:600 clamp(17px,1.65vw,25px)/1.1 "Space Grotesk",sans-serif;letter-spacing:-.035em;text-transform:uppercase}
+.heroHeadline span:last-child{color:var(--accent)}
+.heroTitleWrap{transform:translateY(-3vh)}
+@media(max-width:950px){
+  .heroName{font-size:clamp(78px,15vw,170px)}
+  .heroHeadline{font-size:16px}
+}
+@media(max-width:640px){
+  .wordmark{font-size:12px}
+  .heroName{font-size:clamp(58px,18vw,116px);line-height:.82;letter-spacing:-.045em}
+  .heroHeadline{display:grid;gap:6px;margin-top:17px;font-size:12px;line-height:1.15}
+  .heroTitleWrap{transform:translateY(-2vh)}
+}
