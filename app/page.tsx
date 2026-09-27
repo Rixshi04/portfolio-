@@ -705,12 +705,12 @@ export default function Home() {
         <div className="heroTitleWrap">
           <Reveal className="heroMicro"><span>RISHI KUMAR / DATA SCIENCE GRADUATE</span></Reveal>
           <h1 className="heroTitle">
-            <Reveal delay={80}><SplitLineText>BUILDING</SplitLineText></Reveal>
-            <Reveal delay={160}><SplitLineText>INTELLIGENT</SplitLineText></Reveal>
-            <Reveal delay={240}><SplitLineText className="accentText">SYSTEMS.</SplitLineText></Reveal>
+            <Reveal delay={80}><SplitLineText>RISHI</SplitLineText></Reveal>
+            <Reveal delay={160}><SplitLineText>KUMAR</SplitLineText></Reveal>
+            <Reveal delay={240}><SplitLineText className="accentText">AI / ML.</SplitLineText></Reveal>
           </h1>
           <Reveal className="heroDescription" delay={330}>
-            <p>I design machine learning, computer vision and data products where models become useful, understandable software.</p>
+            <p>I build machine learning, computer vision and AI products where models become useful, visual, and shippable software.</p>
           </Reveal>
         </div>
 
