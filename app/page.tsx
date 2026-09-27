@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Lenis from "lenis";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -324,6 +325,8 @@ function WireTerrain() {
     const uFill = gl.getUniformLocation(program, "uFill");
 
     const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    const scrollMotion = { value: 0, target: 0 };
+    const clickPulse = { value: 0 };
     let raf = 0;
     let last = performance.now();
     let scroll = 0;
@@ -341,15 +344,28 @@ function WireTerrain() {
       pointer.ty = (event.clientY / window.innerHeight - 0.5);
     };
 
+    const onScroll = () => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const normalized = window.scrollY / max;
+      scrollMotion.target = normalized;
+    };
+
+    const onClick = () => {
+      clickPulse.value = 1;
+    };
+
     const draw = (now: number) => {
       const dt = Math.min(0.04, (now - last) / 1000);
       last = now;
 
       pointer.x += (pointer.tx - pointer.x) * Math.min(1, dt * 5.5);
       pointer.y += (pointer.ty - pointer.y) * Math.min(1, dt * 5.5);
+      scrollMotion.value += (scrollMotion.target - scrollMotion.value) * Math.min(1, dt * 3.5);
+      clickPulse.value *= Math.pow(0.0005, dt);
 
       const idleSway = Math.sin(now * 0.00025) * 0.045;
-      scroll = (scroll + dt * 17) % depth;
+      const scrollSpeed = 14 + Math.abs(pointer.y) * 6 + scrollMotion.value * 8 + clickPulse.value * 14;
+      scroll = (scroll + dt * scrollSpeed) % depth;
 
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -367,9 +383,9 @@ function WireTerrain() {
       gl.uniform1f(uScroll, scroll);
       gl.uniform1f(uDepth, depth);
       gl.uniform1f(uCameraHeight, 7.2);
-      gl.uniform1f(uPitch, -0.18 + pointer.y * 0.11);
-      gl.uniform1f(uYaw, pointer.x * -0.15 + idleSway);
-      gl.uniform1f(uRoll, pointer.x * 0.08);
+      gl.uniform1f(uPitch, -0.18 + pointer.y * 0.12 - scrollMotion.value * 0.045);
+      gl.uniform1f(uYaw, pointer.x * -0.18 + idleSway + Math.sin(now * 0.00042) * clickPulse.value * 0.035);
+      gl.uniform1f(uRoll, pointer.x * 0.095 + pointer.y * pointer.x * 0.03);
       gl.uniform2f(uResolution, canvas.clientWidth, canvas.clientHeight);
 
       // Terrain body pass: background-colored triangles write depth,
@@ -398,11 +414,15 @@ function WireTerrain() {
     raf = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", pointerMove);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("click", onClick);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", pointerMove);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("click", onClick);
       gl.deleteBuffer(positionBuffer);
       gl.deleteBuffer(indexBuffer);
       gl.deleteBuffer(lineIndexBuffer);
@@ -421,8 +441,30 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: true,
+      anchors: true,
+      lerp: 0.085,
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+      syncTouch: true,
+      respectReducedMotion: true,
+    });
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   return (
     <main>
+      <div className="globalTerrain">
+        <WireTerrain />
+        <div className="terrainSun" aria-hidden="true" />
+        <div className="globalTerrainVignette" aria-hidden="true" />
+      </div>
+
       <nav className="siteNav">
         <a className="brand" href="#top" aria-label="Rishi Kumar home">
           RK<span>.</span>
@@ -441,8 +483,6 @@ export default function Home() {
       </nav>
 
       <section id="top" className="hero">
-        <WireTerrain />
-        <div className="terrainSun" aria-hidden="true" />
         <div className="heroOverlay" />
         <div className="heroNoise" />
 
