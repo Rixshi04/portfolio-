@@ -317,7 +317,65 @@ button, a { -webkit-tap-highlight-color: transparent; }
   line-height: 1.75;
 }
 
-.projectsSection { background: #070707; }
+.credentialsSection { background: #050505; }
+.credentialsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.credentialBlock {
+  min-height: 230px;
+  padding: 29px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0c0c0c, #080808);
+}
+.credentialBlock h3 {
+  margin: 18px 0 7px;
+  font-size: clamp(25px, 3vw, 37px);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+.credentialTitle {
+  margin: 0;
+  color: #aaa9a2;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.credentialMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 22px;
+}
+.credentialMeta span, .certItem span {
+  color: #777770;
+  font: 9px "DM Mono", monospace;
+}
+.credentialMeta span {
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 999px;
+}
+.certList { display: grid; gap: 0; margin-top: 8px; }
+.certItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 19px 0;
+  border-bottom: 1px solid var(--line);
+}
+.certItem:first-child { border-top: 1px solid var(--line); }
+.certItem strong {
+  display: block;
+  max-width: 420px;
+  color: #e1e1dc;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.certItem svg { color: var(--accent); flex: 0 0 auto; }
+\n.projectsSection { background: #070707; }
 .textLink {
   display: inline-flex;
   align-items: center;
@@ -513,7 +571,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     padding: 92px 7vw;
   }
   .introGrid, .projectsIntro { grid-template-columns: 1fr; gap: 30px; }
-  .projectGrid, .skillGroups, .philosophyGrid, .experienceGrid, .metricStrip { grid-template-columns: 1fr; }
+  .projectGrid, .skillGroups, .philosophyGrid, .experienceGrid, .metricStrip, .credentialsGrid { grid-template-columns: 1fr; }
   .metricStrip > div, .metricStrip > div:nth-child(2), .metricStrip > div:last-child {
     padding: 22px 0;
     border-right: 0;
