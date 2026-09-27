@@ -119,7 +119,7 @@ function WireTerrain() {
 
     if (!gl) return;
 
-    const vertexShaderSource = \`#version 300 es
+    const vertexShaderSource = `#version 300 es
       precision highp float;
 
       layout(location = 0) in vec3 aPosition;
@@ -202,9 +202,9 @@ function WireTerrain() {
         vDepth = depth;
         vHeight = y;
       }
-    \`;
+    `;
 
-    const fragmentShaderSource = \`#version 300 es
+    const fragmentShaderSource = `#version 300 es
       precision highp float;
 
       uniform vec3 uColor;
@@ -223,7 +223,7 @@ function WireTerrain() {
           outColor = vec4(uColor * glow, 1.0);
         }
       }
-    \`;
+    `;
 
     const createShader = (type: number, source: string) => {
       const shader = gl.createShader(type);
