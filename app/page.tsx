@@ -593,8 +593,8 @@ export default function Home() {
           );
         });
 
-        gsap.set(".heroTitle .reveal",{opacity:1,yPercent:0});
-        gsap.fromTo(".heroTitle .word",
+        gsap.set(".heroName .reveal",{opacity:1,yPercent:0});
+        gsap.fromTo(".heroName .reveal",
           {yPercent:115,opacity:0},
           {yPercent:0,opacity:1,duration:1.15,delay:.22,stagger:.12,ease:"expo.out"}
         );
