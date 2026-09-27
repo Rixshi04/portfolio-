@@ -95,22 +95,122 @@ const skills = [
 ];
 
 function ProjectVisual({ project }: { project: Project }) {
-  return (
-    <div className={`projectVisual projectVisual--${project.tone}`}>
-      <div className="visualNoise" />
-      <div className="visualGrid" />
-      <div className="visualOrb" />
-      <div className="visualArc visualArcOne" />
-      <div className="visualArc visualArcTwo" />
-      <div className="visualLabel">{project.number} / {project.category}</div>
-      <div className="visualCode">
-        <span>RISHI_KUMAR</span>
-        <span>{project.tech}</span>
+  if (project.number === "01") {
+    return (
+      <div className="projectVisual sketchVisual">
+        <div className="pvHeader"><span>SKETCH → CODE</span><span>LIVE</span></div>
+        <div className="sketchWindow">
+          <div className="sketchToolbar"><i /><i /><i /><span>home.sketch</span></div>
+          <div className="sketchCanvas">
+            <div className="wirePhone">
+              <div className="wireBlock wireHero" />
+              <div className="wireBlock wireLine" />
+              <div className="wireBlock wireLine short" />
+              <div className="wireCards"><i /><i /><i /></div>
+              <div className="wireButton" />
+            </div>
+            <div className="sketchCursor">⌁</div>
+            <div className="codeChip">&lt;Button /&gt;</div>
+          </div>
+        </div>
+        <div className="pvBottom"><span>COMPONENT DETECTION</span><strong>RESPONSIVE</strong></div>
       </div>
+    );
+  }
+
+  if (project.number === "02") {
+    return (
+      <div className="projectVisual deepfakeVisual">
+        <div className="scannerGrid" />
+        <div className="faceScanner">
+          <div className="scanFace">
+            <span className="eye eyeL" /><span className="eye eyeR" />
+            <i className="nose" /><i className="mouth" />
+          </div>
+          <div className="scanCorners" />
+          <div className="scanLine" />
+        </div>
+        <div className="signalPanel">
+          <span>VISUAL</span><i />
+          <span>AUDIO</span><i />
+          <span>TEMPORAL</span><i />
+        </div>
+        <div className="waveform"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div>
+        <div className="pvStatus">MULTIMODAL ANALYSIS <b>RUNNING</b></div>
+      </div>
+    );
+  }
+
+  if (project.number === "03") {
+    return (
+      <div className="projectVisual carbonVisual">
+        <div className="carbonTop"><span>CARBON / 2026</span><span>−12.4%</span></div>
+        <div className="carbonOrb">
+          <div className="carbonCore">2.84<small>tCO₂e</small></div>
+          <div className="carbonRing ringA" />
+          <div className="carbonRing ringB" />
+          <div className="carbonLeaf">↗</div>
+        </div>
+        <div className="carbonBars">
+          <i style={{height:"44%"}} /><i style={{height:"67%"}} /><i style={{height:"35%"}} /><i style={{height:"78%"}} /><i style={{height:"54%"}} /><i style={{height:"31%"}} />
+        </div>
+        <div className="carbonLegend"><span>ENERGY</span><span>TRAVEL</span><span>FOOD</span></div>
+      </div>
+    );
+  }
+
+  if (project.number === "04") {
+    return (
+      <div className="projectVisual carVisual">
+        <div className="carTopline"><span>PRICE MODEL</span><span>R² 0.91</span></div>
+        <div className="carStage">
+          <div className="carGlow" />
+          <div className="carShape">
+            <div className="carCabin" />
+            <div className="carBody" />
+            <i className="wheel wheelL" /><i className="wheel wheelR" />
+            <b className="headlight" />
+          </div>
+          <div className="carTrack" />
+        </div>
+        <div className="priceChart"><span/><span/><span/><span/><span/><span/><span/></div>
+        <div className="priceLabel">PREDICTED VALUE <b>₹ 8.42L</b></div>
+      </div>
+    );
+  }
+
+  if (project.number === "05") {
+    return (
+      <div className="projectVisual irisVisual">
+        <div className="irisTopline"><span>IRIS / KNN</span><span>150 SAMPLES</span></div>
+        <div className="irisFlower">
+          {[0,1,2,3,4,5].map((petal) => <i key={petal} style={{"--p":petal} as React.CSSProperties} />)}
+          <div className="irisCore" />
+        </div>
+        <div className="classifierNodes">
+          <i /><i /><i /><i /><i />
+          <b>SETOSA</b><b>VERSICOLOR</b><b>VIRGINICA</b>
+        </div>
+        <div className="irisMetric"><span>ACCURACY</span><strong>0.96</strong></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="projectVisual unemploymentVisual">
+      <div className="unemploymentTop"><span>UNEMPLOYMENT / TREND</span><span>2019—2025</span></div>
+      <div className="unemploymentChart">
+        <div className="uAxis" />
+        <div className="uBars"><i/><i/><i/><i/><i/><i/><i/><i/></div>
+        <svg className="trendLine" viewBox="0 0 600 220" preserveAspectRatio="none">
+          <path d="M0 150 C70 128,90 160,150 106 S240 86,290 120 S370 92,420 72 S490 36,600 58" />
+          <circle cx="420" cy="72" r="4" />
+        </svg>
+      </div>
+      <div className="trendData"><span>MEAN</span><b>6.84%</b><span>REGRESSION</span><b>+0.21</b></div>
     </div>
   );
 }
-
 function SplitLineText({ children, className = "" }: { children: string; className?: string }) {
   return (
     <span className={`splitLineText ${className}`}>
@@ -152,7 +252,7 @@ export default function Home() {
   const [activeProject, setActiveProject] = useState(0);
   const [copied, setCopied] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  
   const selected = useMemo(() => projects[activeProject], [activeProject]);
 
   useEffect(() => {
@@ -188,17 +288,24 @@ export default function Home() {
     reveals.forEach((node) => observer.observe(node));
 
     const onMove = (event: PointerEvent) => {
-      setCursor({ x: event.clientX, y: event.clientY });
       document.documentElement.style.setProperty("--cursor-x", `${event.clientX}px`);
       document.documentElement.style.setProperty("--cursor-y", `${event.clientY}px`);
     };
 
+    const onScroll = () => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      document.documentElement.style.setProperty("--scroll-progress", `${window.scrollY / max}`);
+    };
+
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
 
     return () => {
       lenis.destroy();
       observer.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
@@ -272,6 +379,8 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="scrollProgress" aria-hidden="true"><span /></div>
+
       <section className="tickerSection">
         <div className="tickerTrack">
           <span>AI ENGINEERING</span><b>✳</b><span>MACHINE LEARNING</span><b>✳</b><span>COMPUTER VISION</span><b>✳</b>
@@ -313,7 +422,21 @@ export default function Home() {
           </div>
 
           <aside className="selectedVisual">
-            <div className="selectedFrame">
+            <div
+              key={selected.title}
+              className="selectedFrame"
+              onPointerMove={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+                const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+                event.currentTarget.style.setProperty("--tilt-x", `${y * -4}deg`);
+                event.currentTarget.style.setProperty("--tilt-y", `${x * 5}deg`);
+              }}
+              onPointerLeave={(event) => {
+                event.currentTarget.style.setProperty("--tilt-x", "0deg");
+                event.currentTarget.style.setProperty("--tilt-y", "0deg");
+              }}
+            >
               <ProjectVisual project={selected} />
               <div className="selectedInfo">
                 <div>
