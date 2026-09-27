@@ -4,10 +4,9 @@ import { useEffect, useRef } from "react";
 import { ArrowUpRight, Github, Linkedin, Mail, BrainCircuit, Code2, Database, ExternalLink } from "lucide-react";
 
 const projects = [
-  {title:"SketchMaster",tag:"AI / Computer Vision",desc:"AI-driven sketch-to-code system that interprets hand-drawn UI sketches and generates usable HTML/CSS with live preview and UX validation.",stack:"Next.js · TypeScript · FastAPI · Python · ML"},
-  {title:"Deep Fake Video & Audio Detector",tag:"Deep Learning",desc:"Multimodal deepfake detection project combining CNN and LSTM approaches for video and audio analysis.",stack:"Python · CNN · LSTM · TensorFlow / PyTorch"},
-  {title:"Integrated Flight Safety & Risk Analysis",tag:"Machine Learning",desc:"Risk-analysis application using classification models and dashboards to surface flight-safety patterns and predictions.",stack:"Python · Random Forest · Logistic Regression"},
-  {title:"Disaster Management Drone Automation",tag:"Computer Vision",desc:"Offline-first drone analytics concept for GPS-free visual mapping and flood detection in low-connectivity disaster zones.",stack:"Python · Computer Vision · CNN · Edge Analytics"}
+  {title:"Sketch2Code — AI-Based Sketch Interpretation",tag:"AI / Computer Vision",desc:"AI-based handwritten UI sketch interpretation that generates human-centric HTML/CSS code with a live preview workflow.",stack:"Next.js · TypeScript · FastAPI · Python · Machine Learning",href:"https://github.com/Rixshi04/sketch2code-AI-based-sketch-interpretation-for-human-centric-html-css-code-generation"},
+  {title:"Deep-Fake Video & Audio Detector",tag:"Deep Learning",desc:"Multimodal AI/ML system for detecting deepfake content across video and audio using CNN and LSTM-based approaches.",stack:"Python · CNN · LSTM · TensorFlow / PyTorch",href:"https://github.com/Rixshi04/Deep-Fake-video-audio-detector-using-Artificial-intelligence-and-Machine-Learning-"},
+  {title:"Disaster Management Drone Automation",tag:"Computer Vision",desc:"GPS-free drone analytics and offline flood-mapping concept designed for visual analysis in disaster environments with limited connectivity.",stack:"Python · Computer Vision · CNN · Drone Analytics",href:"https://github.com/Rixshi04"}
 ];
 
 const skills = ["Python","Java","SQL","Machine Learning","Computer Vision","PyTorch","TensorFlow","FastAPI","Flask","Next.js","TypeScript","React","Tailwind CSS","Postman","Pytest","Selenium","AWS","Docker","Git"];
@@ -48,7 +47,7 @@ export default function Home(){
 
     <section id="skills" className="section skills"><div className="sectionLabel">02 / TOOLKIT</div><div><h2>Tools I use to <span>build.</span></h2><div className="skillGrid">{skills.map((s,i)=><div className="skill" key={s}><span>{String(i+1).padStart(2,"0")}</span>{s}</div>)}</div></div></section>
 
-    <section id="projects" className="section projects"><div className="sectionLabel">03 / SELECTED WORK</div><div><h2>Projects with a <span>purpose.</span></h2><div className="projectGrid">{projects.map((p,i)=><article className="project" key={p.title}><div className="projectTop"><span>{String(i+1).padStart(2,"0")}</span><a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer"><ExternalLink size={17}/></a></div><div className="icon"><BrainCircuit size={22}/></div><div className="tag">{p.tag}</div><h3>{p.title}</h3><p>{p.desc}</p><small>{p.stack}</small></article>)}</div></div></section>
+    <section id="projects" className="section projects"><div className="sectionLabel">03 / SELECTED WORK</div><div><h2>Projects with a <span>purpose.</span></h2><div className="projectGrid">{projects.map((p,i)=><article className="project" key={p.title}><div className="projectTop"><span>{String(i+1).padStart(2,"0")}</span><a href={p.href} target="_blank" rel="noreferrer"><ExternalLink size={17}/></a></div><div className="icon"><BrainCircuit size={22}/></div><div className="tag">{p.tag}</div><h3>{p.title}</h3><p>{p.desc}</p><small>{p.stack}</small></article>)}</div></div></section>
 
     <section className="section experience"><div className="sectionLabel">04 / APPROACH</div><div className="approach"><h2>Engineering with <span>intent.</span></h2><div className="approachGrid"><div><Code2/><h3>Build</h3><p>Turn requirements into maintainable applications and APIs.</p></div><div><Database/><h3>Validate</h3><p>Use data, testing, and evaluation to understand what works.</p></div><div><BrainCircuit/><h3>Improve</h3><p>Iterate quickly, learn new tools, and refine the product.</p></div></div></div></section>
 
