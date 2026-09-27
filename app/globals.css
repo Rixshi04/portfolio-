@@ -1406,3 +1406,39 @@ html,body{overscroll-behavior-y:none}
 @media(prefers-reduced-motion:reduce){
   .soundToggle.isOn .soundBars i{animation:none}
 }
+
+/* Intro sound activation */
+.heroSoundReveal{display:flex;align-items:center;margin-top:2px}
+.heroSoundReveal .soundToggle{
+  min-width:172px;
+  justify-content:center;
+  padding:12px 16px 11px;
+  border:1px solid rgba(11,11,11,.28);
+  background:rgba(238,234,226,.54);
+  box-shadow:0 8px 24px rgba(11,11,11,.05);
+  backdrop-filter:blur(10px);
+  color:var(--ink);
+  transition:background .3s ease,border-color .3s ease,transform .3s ease,box-shadow .3s ease;
+}
+.heroSoundReveal .soundToggle:hover,
+.heroSoundReveal .soundToggle.isOn{
+  background:rgba(255,255,255,.68);
+  border-color:rgba(255,74,10,.5);
+  box-shadow:0 10px 32px rgba(255,74,10,.1);
+  transform:translateY(-2px);
+}
+.heroSoundReveal .soundToggle:not(.isOn)::after{
+  content:"TAP TO HEAR";
+  margin-left:8px;
+  color:var(--accent);
+  font-size:7px;
+}
+@media(max-width:640px){
+  .heroSoundReveal{margin-top:7px}
+  .heroSoundReveal .soundToggle{
+    min-width:168px;
+    min-height:46px;
+    padding:13px 15px;
+    font-size:8px;
+  }
+}
