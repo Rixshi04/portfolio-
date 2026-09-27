@@ -217,7 +217,9 @@ function WireTerrain() {
       "      out vec4 outColor;",
       "",
       "      void main() {",
-      "        float fade = 1.0 - smoothstep(uDepth * 0.32, uDepth * 0.98, vDepth);",
+      "        float fade = 1.0 - smoothstep(uDepth * 0.25, uDepth * 0.98, vDepth);
+        float travel = 0.55 + 0.45 * sin(vDepth * 0.16 - uTime * 2.15);
+        float edgePulse = 0.78 + 0.22 * travel;",
       "        if (uFill) {",
       "          outColor = vec4(0.0, 0.0, 0.0, 1.0);",
       "        } else {",
@@ -252,10 +254,10 @@ function WireTerrain() {
       throw new Error(gl.getProgramInfoLog(program) || "Program linking failed");
     }
 
-    const gridX = 42;
-    const gridZ = 132;
-    const width = 18;
-    const depth = 92;
+    const gridX = 58;
+    const gridZ = 156;
+    const width = 21;
+    const depth = 112;
 
     const positions: number[] = [];
     for (let z = 0; z < gridZ; z += 1) {
@@ -441,6 +443,17 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const move = (event: PointerEvent) => {
+      root.style.setProperty("--mx", event.clientX + "px");
+      root.style.setProperty("--my", event.clientY + "px");
+    };
+    window.addEventListener("pointermove", move);
+    return () => window.removeEventListener("pointermove", move);
+  }, []);
+
   useEffect(() => {
     const lenis = new Lenis({
       autoRaf: true,
@@ -463,6 +476,7 @@ export default function Home() {
         <WireTerrain />
         <div className="terrainSun" aria-hidden="true" />
         <div className="globalTerrainVignette" aria-hidden="true" />
+        <div className="cursorField" aria-hidden="true" />
       </div>
 
       <nav className="siteNav">
@@ -520,7 +534,7 @@ export default function Home() {
             <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
               <span className="socialMark">GH</span> GitHub
             </a>
-            <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
+            <a href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">
               <span className="socialMark">in</span> LinkedIn
             </a>
             <span>
