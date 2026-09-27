@@ -593,9 +593,11 @@ export default function Home() {
           );
         });
 
-        gsap.utils.toArray<HTMLElement>(".heroTitle .reveal").forEach((el,i)=>{
-          gsap.fromTo(el,{yPercent:110,opacity:0},{yPercent:0,opacity:1,duration:1.05,delay:.08+i*.10,ease:"expo.out"});
-        });
+        gsap.set(".heroTitle .reveal",{opacity:1,yPercent:0});
+        gsap.fromTo(".heroTitle .word",
+          {yPercent:115,opacity:0},
+          {yPercent:0,opacity:1,duration:1.15,delay:.22,stagger:.12,ease:"expo.out"}
+        );
 
         gsap.to(".heroTitleWrap",{yPercent:11,rotateX:2,scrollTrigger:{
           trigger:".heroStage",start:"top top",end:"bottom top",scrub:1.2
