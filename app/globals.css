@@ -81,6 +81,40 @@ button, a { -webkit-tap-highlight-color: transparent; }
   height: 100%;
 }
 .terrainCanvas { z-index: -3; display: block; background: #000; }
+.terrainSun {
+  position: absolute;
+  z-index: -2;
+  left: 57%;
+  top: 52%;
+  width: clamp(150px, 17vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,60,0,.92) 0 2px,
+      rgba(0,0,0,0) 2px 7px
+    );
+  box-shadow:
+    0 0 30px rgba(255,60,0,.28),
+    0 0 110px rgba(255,60,0,.16);
+  opacity: .78;
+  filter: saturate(1.2);
+  pointer-events: none;
+}
+.terrainSun::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260%;
+  height: 80%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, rgba(255,60,0,.22) 0%, rgba(255,60,0,.08) 35%, transparent 72%);
+  filter: blur(12px);
+}
+
 .heroOverlay {
   z-index: -2;
   background:
@@ -598,4 +632,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .projectFooter { left: 24px; right: 24px; }
   .timelineItem { grid-template-columns: 18px 1fr; gap: 16px; }
   .siteFooter { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 620px) {
+  .terrainSun { left: 60%; top: 56%; width: 170px; opacity: .6; }
 }
