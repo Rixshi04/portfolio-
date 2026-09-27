@@ -599,7 +599,11 @@ export default function Home() {
           {yPercent:0,opacity:1,duration:1.15,delay:.22,stagger:.12,ease:"expo.out"}
         );
 
-        gsap.to(".heroTitleWrap",{yPercent:11,rotateX:2,scrollTrigger:{
+        gsap.fromTo(".heroTitleWrap",
+          {y:48, opacity:0},
+          {y:0, opacity:1, duration:1.05, delay:.05, ease:"expo.out"}
+        );
+        gsap.to(".heroTitleWrap",{yPercent:-14,rotateX:1.5,scrollTrigger:{
           trigger:".heroStage",start:"top top",end:"bottom top",scrub:1.2
         }});
 
