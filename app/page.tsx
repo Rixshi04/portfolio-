@@ -575,6 +575,24 @@ export default function Home() {
 
     const ctx=gsap.context(()=>{
       if(!reduce){
+        gsap.utils.toArray<HTMLElement>(".reveal").forEach((el)=>{
+          if (el.closest(".heroTitle")) return;
+          const delay = Number.parseInt(el.style.getPropertyValue("--delay")) || 0;
+          gsap.fromTo(el,
+            { y: 55, opacity: 0, filter: "blur(8px)" },
+            {
+              y: 0, opacity: 1, filter: "blur(0px)",
+              duration: .9, delay: delay / 1000,
+              ease: "expo.out",
+              scrollTrigger: {
+                trigger: el,
+                start: "top 91%",
+                once: true
+              }
+            }
+          );
+        });
+
         gsap.utils.toArray<HTMLElement>(".heroTitle .reveal").forEach((el,i)=>{
           gsap.fromTo(el,{yPercent:110,opacity:0},{yPercent:0,opacity:1,duration:1.05,delay:.08+i*.10,ease:"expo.out"});
         });
@@ -612,7 +630,9 @@ export default function Home() {
           trigger:".contactSection",start:"top bottom",end:"bottom top",scrub:1.2
         }});
       } else {
-        gsap.set(".reveal,.sectionHead h2,.aboutLead,.aboutCopy,.selectedVisual,.contactBig,.socialGrid",{opacity:1,y:0});
+        gsap.set(".reveal,.sectionHead h2,.aboutLead,.aboutCopy,.selectedVisual,.contactBig,.socialGrid",{
+          opacity:1,y:0,filter:"none"
+        });
       }
     });
 
