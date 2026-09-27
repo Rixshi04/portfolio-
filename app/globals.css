@@ -1196,83 +1196,152 @@ html,body{overscroll-behavior-y:none}
   .solarScene{transform:translate(-50%,-50%) scale(.92)}
 }
 
-/* Subtle cinematic lens flare — strongest in the intro, fading into the solar pullback */
+/* Cinematic anamorphic solar flare */
 .solarFlare{
   position:absolute;
   left:50%;
   top:50%;
-  width:62%;
-  height:18%;
-  transform:translate(-16%,-50%) rotate(-3deg);
+  width:82%;
+  height:34%;
+  transform:translate(-17%,-50%) rotate(-4deg);
   transform-origin:left center;
   pointer-events:none;
   z-index:2;
-  opacity:clamp(0,calc((1 - var(--solar-progress)*2.2)*.34),.34);
-  transition:opacity .2s linear;
-  filter:blur(.15px);
+  opacity:clamp(0,calc((1 - var(--solar-progress)*2.05)*.48),.48);
+  transition:opacity .25s linear;
+  mix-blend-mode:screen;
+  filter:blur(.1px);
+  animation:flareDrift 10s ease-in-out infinite;
 }
 .flareCore{
   position:absolute;
-  left:5%;
+  left:4.8%;
   top:50%;
-  width:14px;
-  height:14px;
+  width:20px;
+  height:20px;
   transform:translate(-50%,-50%);
   border-radius:50%;
-  background:rgba(255,242,230,.85);
-  box-shadow:0 0 16px rgba(255,176,132,.62),0 0 34px rgba(255,86,44,.22);
+  background:radial-gradient(circle,rgba(255,255,245,.98) 0 13%,rgba(255,225,202,.8) 28%,rgba(255,120,72,.18) 64%,transparent 72%);
+  box-shadow:
+    0 0 12px rgba(255,244,227,.95),
+    0 0 34px rgba(255,166,119,.7),
+    0 0 72px rgba(255,83,42,.38);
+}
+.flareCore::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:110px;
+  height:110px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,132,87,.11),rgba(255,83,42,.05) 38%,transparent 72%);
+  filter:blur(13px);
+}
+.flareCore::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:56px;
+  height:56px;
+  transform:translate(-50%,-50%) rotate(45deg);
+  background:linear-gradient(90deg,transparent 46%,rgba(255,232,214,.45) 50%,transparent 54%),
+             linear-gradient(0deg,transparent 46%,rgba(255,232,214,.45) 50%,transparent 54%);
+  filter:blur(1px);
+  opacity:.8;
 }
 .flareStreak{
   position:absolute;
-  left:4%;
+  left:3%;
   right:0;
   top:50%;
-  height:1px;
+  height:2px;
   transform:translateY(-50%);
-  background:linear-gradient(90deg,rgba(255,210,184,.7),rgba(255,135,92,.22) 38%,transparent 90%);
+  background:linear-gradient(
+    90deg,
+    rgba(255,246,235,.9) 0%,
+    rgba(255,205,176,.78) 7%,
+    rgba(255,139,90,.34) 28%,
+    rgba(255,111,73,.17) 50%,
+    rgba(255,94,54,.06) 72%,
+    transparent 100%
+  );
+  box-shadow:0 0 14px rgba(255,130,84,.22);
+}
+.flareStreak::before{
+  content:"";
+  position:absolute;
+  left:4%;
+  right:18%;
+  top:50%;
+  height:20px;
+  transform:translateY(-50%);
+  background:linear-gradient(90deg,rgba(255,158,116,.25),rgba(255,92,56,.08),transparent 82%);
+  filter:blur(9px);
 }
 .flareStreak::after{
   content:"";
   position:absolute;
-  left:8%;
-  right:8%;
+  left:16%;
+  right:30%;
   top:50%;
-  height:18px;
+  height:1px;
   transform:translateY(-50%);
-  background:linear-gradient(90deg,rgba(255,128,79,.15),transparent 75%);
-  filter:blur(8px);
+  background:linear-gradient(90deg,rgba(255,236,220,.44),transparent);
+  filter:blur(.4px);
 }
 .flareGhost{
   position:absolute;
   top:50%;
   transform:translate(-50%,-50%);
-  border:1px solid rgba(255,150,112,.16);
+  border:1px solid rgba(255,178,143,.22);
   border-radius:50%;
-  background:radial-gradient(circle,rgba(255,154,113,.06),transparent 70%);
+  background:
+    radial-gradient(circle,rgba(255,175,136,.10) 0 12%,transparent 52%),
+    radial-gradient(circle,transparent 58%,rgba(255,122,83,.055) 63%,transparent 70%);
+  box-shadow:inset 0 0 18px rgba(255,118,75,.05),0 0 18px rgba(255,130,90,.04);
 }
 .flareGhostA{
-  left:39%;
-  width:42px;
-  height:42px;
+  left:34%;
+  width:74px;
+  height:74px;
 }
 .flareGhostB{
-  left:72%;
-  width:18px;
-  height:18px;
+  left:60%;
+  width:34px;
+  height:34px;
+}
+.flareGhostA::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:8px;
+  height:8px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:rgba(255,177,141,.12);
+  box-shadow:0 0 16px rgba(255,121,77,.16);
 }
 @keyframes flareDrift{
-  0%,100%{transform:translate(-16%,-50%) rotate(-3deg) scaleX(.98)}
-  50%{transform:translate(-16%,-50%) rotate(-3deg) scaleX(1.03)}
+  0%,100%{transform:translate(-17%,-50%) rotate(-4deg) scaleX(.985)}
+  50%{transform:translate(-17%,-50%) rotate(-4deg) scaleX(1.018)}
 }
-.solarFlare{animation:flareDrift 8s ease-in-out infinite}
+@media(max-width:950px){
+  .solarFlare{width:86%;opacity:clamp(0,calc((1 - var(--solar-progress)*2.2)*.38),.38)}
+}
 @media(max-width:640px){
   .solarFlare{
-    width:70%;
-    transform:translate(-12%,-50%) rotate(-4deg) scale(.8);
+    width:96%;
+    height:28%;
+    transform:translate(-11%,-50%) rotate(-5deg) scale(.82);
   }
-  .flareCore{width:10px;height:10px}
-  .flareGhostA{width:30px;height:30px}
-  .flareGhostB{width:14px;height:14px}
+  .flareCore{width:15px;height:15px}
+  .flareCore::before{width:84px;height:84px}
+  .flareGhostA{width:48px;height:48px}
+  .flareGhostB{width:22px;height:22px}
 }
 @media(prefers-reduced-motion:reduce){
   .solarFlare{animation:none}
