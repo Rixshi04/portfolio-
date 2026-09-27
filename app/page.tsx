@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Copy, Github, Linkedin, Mail, MoveUpRight } from "lucide-react";
+import { ArrowUpRight, Copy, Mail, MoveUpRight } from "lucide-react";
 import Lenis from "lenis";
 
 type Project = {
@@ -268,7 +268,7 @@ export default function Home() {
             <p className="selectedDescription">{selected.description}</p>
             <div className="selectedLinks">
               <a href={selected.href} target="_blank" rel="noreferrer">
-                GitHub <Github size={14} />
+                GitHub <span className="brandMark">GH</span>
               </a>
               {selected.live && (
                 <a href={selected.live} target="_blank" rel="noreferrer">
@@ -355,10 +355,10 @@ export default function Home() {
 
           <div className="socialGrid">
             <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              GitHub <Github size={15} />
+              GitHub <span className="brandMark">GH</span>
             </a>
             <a href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">
-              LinkedIn <Linkedin size={15} />
+              LinkedIn <span className="brandMark">in</span>
             </a>
             <a href="mailto:s.rishikumar04@gmail.com">
               Email <Mail size={15} />
