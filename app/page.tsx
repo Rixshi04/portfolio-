@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Copy, Mail, MoveUpRight } from "lucide-react";
 import Lenis from "lenis";
+
+type Tone = "orange" | "violet" | "lime" | "blue" | "cyan" | "pink";
 
 type Project = {
   number: string;
@@ -12,7 +14,7 @@ type Project = {
   year: string;
   href: string;
   live?: string;
-  tone: "orange" | "cyan" | "lime" | "violet" | "blue" | "pink";
+  tone: Tone;
   description: string;
 };
 
@@ -87,54 +89,77 @@ const projects: Project[] = [
 ];
 
 const skills = [
-  "Python",
-  "Java",
-  "SQL",
-  "PyTorch",
-  "TensorFlow",
-  "OpenCV",
-  "YOLO",
-  "Pandas",
-  "NumPy",
-  "FastAPI",
-  "Flask",
-  "Next.js",
-  "React",
-  "TypeScript",
-  "Tailwind CSS",
-  "Docker",
-  "AWS",
-  "Git",
+  "Python", "Java", "SQL", "PyTorch", "TensorFlow", "OpenCV",
+  "YOLO", "Pandas", "NumPy", "FastAPI", "Flask", "Next.js",
+  "React", "TypeScript", "Tailwind CSS", "Docker", "AWS", "Git",
 ];
 
 function ProjectVisual({ project }: { project: Project }) {
   return (
-    <div className={`projectVisual projectVisual--${project.tone}`} aria-hidden="true">
-      <div className="visualGlow" />
+    <div className={`projectVisual projectVisual--${project.tone}`}>
+      <div className="visualNoise" />
       <div className="visualGrid" />
       <div className="visualOrb" />
-      <div className="visualPlane" />
+      <div className="visualArc visualArcOne" />
+      <div className="visualArc visualArcTwo" />
       <div className="visualLabel">{project.number} / {project.category}</div>
-    </div>
-  );
-}
-
-function Marquee() {
-  return (
-    <div className="marquee" aria-hidden="true">
-      <div className="marqueeTrack">
-        <span>AI ENGINEERING</span><i>•</i><span>MACHINE LEARNING</span><i>•</i>
-        <span>COMPUTER VISION</span><i>•</i><span>DATA</span><i>•</i>
-        <span>AI ENGINEERING</span><i>•</i><span>MACHINE LEARNING</span><i>•</i>
-        <span>COMPUTER VISION</span><i>•</i><span>DATA</span><i>•</i>
+      <div className="visualCode">
+        <span>RISHI_KUMAR</span>
+        <span>{project.tech}</span>
       </div>
     </div>
   );
 }
 
+function SplitLineText({ children, className = "" }: { children: string; className?: string }) {
+  return (
+    <span className={`splitLineText ${className}`}>
+      {children.split(" ").map((word, index) => (
+        <span className="wordClip" key={`${word}-${index}`}>
+          <span className="word">{word}{index < children.split(" ").length - 1 ? "\u00a0" : ""}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  return <div className={`reveal ${className}`} style={{ "--delay": `${delay}ms` } as React.CSSProperties}>{children}</div>;
+}
+
+function Magnetic({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+
+  const onMove = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    const node = ref.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    node.style.setProperty("--mx", `${Math.max(-12, Math.min(12, x * 0.18))}px`);
+    node.style.setProperty("--my", `${Math.max(-12, Math.min(12, y * 0.18))}px`);
+  };
+
+  const reset = () => {
+    ref.current?.style.setProperty("--mx", "0px");
+    ref.current?.style.setProperty("--my", "0px");
+  };
+
+  return <a ref={ref} className={`magnetic ${className}`} onPointerMove={onMove} onPointerLeave={reset}>{children}</a>;
+}
+
 export default function Home() {
   const [activeProject, setActiveProject] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const selected = useMemo(() => projects[activeProject], [activeProject]);
+
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => setLoaded(true), reduce ? 0 : 850);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -142,15 +167,40 @@ export default function Home() {
       anchors: true,
       lerp: 0.075,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
+      wheelMultiplier: 0.86,
       syncTouch: true,
       respectReducedMotion: true,
     });
 
-    return () => lenis.destroy();
-  }, []);
+    const reveals = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("isVisible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.12 }
+    );
 
-  const selected = useMemo(() => projects[activeProject], [activeProject]);
+    reveals.forEach((node) => observer.observe(node));
+
+    const onMove = (event: PointerEvent) => {
+      setCursor({ x: event.clientX, y: event.clientY });
+      document.documentElement.style.setProperty("--cursor-x", `${event.clientX}px`);
+      document.documentElement.style.setProperty("--cursor-y", `${event.clientY}px`);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+
+    return () => {
+      lenis.destroy();
+      observer.disconnect();
+      window.removeEventListener("pointermove", onMove);
+    };
+  }, []);
 
   const copyEmail = async () => {
     try {
@@ -163,20 +213,27 @@ export default function Home() {
   };
 
   return (
-    <main className="site">
+    <main className={`site ${loaded ? "siteLoaded" : ""}`}>
+      <div className="loader" aria-hidden={!loaded}>
+        <div className="loaderTop"><span>RISHI KUMAR</span><span>2026</span></div>
+        <div className="loaderCounter">0<span>%</span></div>
+        <div className="loaderBar"><span /></div>
+        <div className="loaderBottom"><span>MACHINE LEARNING / AI / COMPUTER VISION</span><span>CHENNAI, INDIA</span></div>
+      </div>
+
+      <div className="cursor">
+        <span className="cursorDot" />
+        <span className="cursorRing" />
+      </div>
+
       <header className="topbar">
-        <a href="#top" className="wordmark">
-          RISHI KUMAR<span>.</span>
-        </a>
-
+        <a href="#top" className="wordmark">RK<span>.</span></a>
         <p className="descriptor">
-          Machine Learning Engineer with a background in
-          <br />
-          computer vision, data and AI application development.
+          MACHINE LEARNING ENGINEER<br />
+          AI · COMPUTER VISION · DATA
         </p>
-
         <nav className="topnav">
-          <a href="#works">Selected Works</a>
+          <a href="#works">Works</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -184,51 +241,52 @@ export default function Home() {
 
       <section id="top" className="heroStage">
         <div className="heroTopline">
+          <span>00 — INTRO</span>
           <span>CHENNAI, INDIA</span>
           <span>AVAILABLE FOR OPPORTUNITIES</span>
-          <span>PORTFOLIO — 2026</span>
         </div>
 
         <div className="heroTitleWrap">
-          <p className="heroMicro">AI · ML · COMPUTER VISION · SOFTWARE</p>
+          <Reveal className="heroMicro"><span>RISHI KUMAR / DATA SCIENCE GRADUATE</span></Reveal>
           <h1 className="heroTitle">
-            RISHI
-            <br />
-            KUMAR
+            <Reveal delay={80}><SplitLineText>BUILDING</SplitLineText></Reveal>
+            <Reveal delay={160}><SplitLineText>INTELLIGENT</SplitLineText></Reveal>
+            <Reveal delay={240}><SplitLineText className="accentText">SYSTEMS.</SplitLineText></Reveal>
           </h1>
+          <Reveal className="heroDescription" delay={330}>
+            <p>I design machine learning, computer vision and data products where models become useful, understandable software.</p>
+          </Reveal>
+        </div>
 
-          <div className="heroAside">
-            <p>
-              I build intelligent systems that move from data and model
-              experiments into usable products.
-            </p>
-            <a href="#works">
-              SCROLL TO SELECTED WORKS <ArrowUpRight size={15} />
-            </a>
-          </div>
+        <div className="heroSideNote">
+          <Reveal delay={450}>
+            <span>SCROLL TO EXPLORE</span>
+            <span className="sideArrow">↓</span>
+          </Reveal>
         </div>
 
         <div className="heroFooter">
           <span>OPEN TO WORK</span>
           <span>PYTHON / PYTORCH / NEXT.JS</span>
-          <span>↘ SCROLL</span>
+          <span>01 / 04</span>
         </div>
       </section>
 
-      <Marquee />
+      <section className="tickerSection">
+        <div className="tickerTrack">
+          <span>AI ENGINEERING</span><b>✳</b><span>MACHINE LEARNING</span><b>✳</b><span>COMPUTER VISION</span><b>✳</b>
+          <span>AI ENGINEERING</span><b>✳</b><span>MACHINE LEARNING</span><b>✳</b><span>COMPUTER VISION</span><b>✳</b>
+        </div>
+      </section>
 
       <section id="works" className="worksSection sectionShell">
         <div className="sectionHead">
           <span className="sectionNumber">01</span>
           <div>
             <p className="eyebrow">SELECTED WORKS</p>
-            <h2>Projects that put<br />the <em>model</em> to work.</h2>
+            <h2><SplitLineText>PROJECTS</SplitLineText><br /><em><SplitLineText>IN MOTION.</SplitLineText></em></h2>
           </div>
-          <p className="sectionMeta">
-            06 projects
-            <br />
-            machine learning / data / interfaces
-          </p>
+          <p className="sectionMeta">06 PROJECTS<br />CLICK A PROJECT TO OPEN</p>
         </div>
 
         <div className="workIndex">
@@ -236,20 +294,20 @@ export default function Home() {
             {projects.map((project, index) => {
               const isActive = activeProject === index;
               return (
-                <div
-                  key={project.title}
-                  className={`workRow ${isActive ? "isActive" : ""}`}
-                  onMouseEnter={() => setActiveProject(index)}
-                  onFocus={() => setActiveProject(index)}
-                >
-                  <a href={project.href} target="_blank" rel="noreferrer" className="workLink">
-                    <span className="workNo">{project.number}</span>
-                    <span className="workTitle">{project.title}</span>
-                    <span className="workType">{project.category}</span>
-                    <span className="workYear">{project.year}</span>
-                    <MoveUpRight size={16} className="workArrow" />
-                  </a>
-                </div>
+                <Reveal key={project.title} delay={index * 45} className={`workReveal ${isActive ? "activeReveal" : ""}`}>
+                  <div
+                    className={`workRow ${isActive ? "isActive" : ""}`}
+                    onMouseEnter={() => setActiveProject(index)}
+                  >
+                    <a href={project.href} target="_blank" rel="noreferrer" className="workLink">
+                      <span className="workNo">{project.number}</span>
+                      <span className="workTitle">{project.title}</span>
+                      <span className="workType">{project.category}</span>
+                      <span className="workYear">{project.year}</span>
+                      <MoveUpRight size={16} className="workArrow" />
+                    </a>
+                  </div>
+                </Reveal>
               );
             })}
           </div>
@@ -267,14 +325,8 @@ export default function Home() {
             </div>
             <p className="selectedDescription">{selected.description}</p>
             <div className="selectedLinks">
-              <a href={selected.href} target="_blank" rel="noreferrer">
-                GitHub <span className="brandMark">GH</span>
-              </a>
-              {selected.live && (
-                <a href={selected.live} target="_blank" rel="noreferrer">
-                  Live site <ArrowUpRight size={14} />
-                </a>
-              )}
+              <a href={selected.href} target="_blank" rel="noreferrer">GitHub <MoveUpRight size={13} /></a>
+              {selected.live && <a href={selected.live} target="_blank" rel="noreferrer">Live site <MoveUpRight size={13} /></a>}
             </div>
           </aside>
         </div>
@@ -284,39 +336,26 @@ export default function Home() {
         <div className="sectionHead">
           <span className="sectionNumber">02</span>
           <div>
-            <p className="eyebrow">ABOUT</p>
-            <h2>A developer<br />who likes <em>systems.</em></h2>
+            <p className="eyebrow">ABOUT / EXPERIENCE</p>
+            <h2><SplitLineText>MODEL</SplitLineText><br /><em><SplitLineText>TO PRODUCT.</SplitLineText></em></h2>
           </div>
-          <p className="sectionMeta">
-            CHENNAI, INDIA
-            <br />
-            DATA SCIENCE GRADUATE
-          </p>
+          <p className="sectionMeta">COGNIBOT<br />MACHINE LEARNING INTERN</p>
         </div>
 
         <div className="aboutGrid">
-          <div className="aboutLead">
-            <p className="bigStatement">
-              I work across machine learning, computer vision, data analysis and modern web engineering —
-              connecting experiments to real interfaces.
-            </p>
-          </div>
-          <div className="aboutCopy">
-            <p>
-              My focus is practical AI: prepare the data, validate the outputs, build the service,
-              and make the result easy to use.
-            </p>
-            <p>
-              During my Machine Learning internship at Cognibot, I worked on model output review,
-              data validation, Python ETL automation, reporting and documentation.
-            </p>
+          <Reveal className="aboutLead">
+            <p className="bigStatement">I like the part where an experiment stops being a notebook and starts behaving like a product.</p>
+          </Reveal>
+          <Reveal className="aboutCopy" delay={120}>
+            <p>At Cognibot, I worked across model output review, data quality, Python ETL automation, reporting, validation and documentation.</p>
+            <p>My projects follow the same loop: <strong>build → validate → improve.</strong></p>
             <div className="factGrid">
-              <div><strong>20/20</strong><span>validated SketchMaster cases</span></div>
+              <div><strong>20/20</strong><span>SketchMaster cases validated</span></div>
               <div><strong>12.25ms</strong><span>average inference time</span></div>
               <div><strong>22%</strong><span>output reduction after optimization</span></div>
               <div><strong>7.30</strong><span>graduated CGPA / 10</span></div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -325,13 +364,14 @@ export default function Home() {
           <span className="sectionNumber">03</span>
           <div>
             <p className="eyebrow">TOOLS / STACK</p>
-            <h2>Built with<br /><em>curiosity.</em></h2>
+            <h2><SplitLineText>THINGS</SplitLineText><br /><em><SplitLineText>I BUILD WITH.</SplitLineText></em></h2>
           </div>
         </div>
-
         <div className="skillWall">
           {skills.map((skill, index) => (
-            <span key={skill} style={{ "--i": index } as React.CSSProperties}>{skill}</span>
+            <Reveal key={skill} delay={index * 22}>
+              <span>{skill}</span>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -341,35 +381,30 @@ export default function Home() {
           <span className="sectionNumber">04</span>
           <div>
             <p className="eyebrow">CONTACT</p>
-            <h2>Let&apos;s make<br />something <em>useful.</em></h2>
+            <h2><SplitLineText>LET&apos;S MAKE</SplitLineText><br /><em><SplitLineText>SOMETHING USEFUL.</SplitLineText></em></h2>
           </div>
         </div>
 
         <div className="contactGrid">
-          <div className="contactBig">
+          <Reveal className="contactBig">
             <button onClick={copyEmail} className="emailButton" type="button">
               <span>{copied ? "EMAIL COPIED" : "s.rishikumar04@gmail.com"}</span>
-              <Copy size={16} />
+              <Copy size={17} />
             </button>
-          </div>
+            <div className="contactMicro">AVAILABLE FOR INTERNSHIPS / ENTRY-LEVEL ROLES / AI & ML PROJECTS</div>
+          </Reveal>
 
-          <div className="socialGrid">
-            <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              GitHub <span className="brandMark">GH</span>
-            </a>
-            <a href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">
-              LinkedIn <span className="brandMark">in</span>
-            </a>
-            <a href="mailto:s.rishikumar04@gmail.com">
-              Email <Mail size={15} />
-            </a>
-          </div>
+          <Reveal className="socialGrid" delay={130}>
+            <Magnetic className="socialItem" href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">GitHub <span>GH</span></Magnetic>
+            <Magnetic className="socialItem" href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">LinkedIn <span>in</span></Magnetic>
+            <Magnetic className="socialItem" href="mailto:s.rishikumar04@gmail.com">Email <Mail size={15} /></Magnetic>
+          </Reveal>
         </div>
       </section>
 
       <footer className="footer">
         <span>© 2026 RISHI KUMAR</span>
-        <span>MACHINE LEARNING · AI · COMPUTER VISION</span>
+        <span>BUILT WITH NEXT.JS · TYPESCRIPT</span>
         <a href="#top">BACK TO TOP ↑</a>
       </footer>
     </main>
