@@ -162,7 +162,7 @@ function ProjectVisual({ project }: { project: Project }) {
   if (project.number === "04") {
     return (
       <div className="projectVisual carVisual">
-        <div className="carTopline"><span>PRICE MODEL</span><span>R² 0.91</span></div>
+        <div className="carTopline"><span>PRICE MODEL</span><span>REGRESSION</span></div>
         <div className="carStage">
           <div className="carGlow" />
           <div className="carShape">
@@ -174,7 +174,7 @@ function ProjectVisual({ project }: { project: Project }) {
           <div className="carTrack" />
         </div>
         <div className="priceChart"><span/><span/><span/><span/><span/><span/><span/></div>
-        <div className="priceLabel">PREDICTED VALUE <b>₹ 8.42L</b></div>
+        <div className="priceLabel">PREDICTION <b>PRICE ESTIMATE</b></div>
       </div>
     );
   }
@@ -191,7 +191,7 @@ function ProjectVisual({ project }: { project: Project }) {
           <i /><i /><i /><i /><i />
           <b>SETOSA</b><b>VERSICOLOR</b><b>VIRGINICA</b>
         </div>
-        <div className="irisMetric"><span>ACCURACY</span><strong>0.96</strong></div>
+        <div className="irisMetric"><span>CLASSIFIER</span><strong>KNN</strong></div>
       </div>
     );
   }
@@ -207,7 +207,7 @@ function ProjectVisual({ project }: { project: Project }) {
           <circle cx="420" cy="72" r="4" />
         </svg>
       </div>
-      <div className="trendData"><span>MEAN</span><b>6.84%</b><span>REGRESSION</span><b>+0.21</b></div>
+      <div className="trendData"><span>METHOD</span><b>EDA</b><span>MODEL</span><b>LINEAR</b></div>
     </div>
   );
 }
