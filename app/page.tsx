@@ -557,6 +557,24 @@ function InteractiveSound() {
   );
 }
 
+function ScrollRail() {
+  return (
+    <div className="scrollRail" aria-hidden="false">
+      <span className="scrollRailLabel">SCROLL</span>
+      <div className="scrollRailTrack">
+        <span className="scrollRailPulse" />
+        <span className="scrollRailFill" />
+      </div>
+      <div className="scrollRailEnd">
+        <span className="scrollRailEndGlow" />
+        <div className="scrollRailSound">
+          <InteractiveSound />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SolarSystemBackdrop() {
   return (
     <div className="solarSystem" aria-hidden="true">
@@ -917,6 +935,8 @@ export default function Home() {
         <span className="cursorRing" />
       </div>
 
+      <ScrollRail />
+
       <header className="topbar">
         <a href="#top" className="wordmark">RISHI KUMAR<span>.</span></a>
         <p className="descriptor">
@@ -947,9 +967,6 @@ export default function Home() {
           <Reveal className="heroHeadline" delay={280}>
             <span>MACHINE LEARNING</span>
             <span>ENGINEER · AI · COMPUTER VISION</span>
-          </Reveal>
-          <Reveal className="heroSoundReveal heroSoundFloat" delay={340}>
-            <InteractiveSound />
           </Reveal>
           <div className="heroUtility">
             <Reveal className="heroDescription" delay={390}>
