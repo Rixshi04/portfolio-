@@ -979,3 +979,20 @@ html,body{overscroll-behavior-y:none}
   .heroHeadline{display:grid;gap:6px;margin-top:17px;font-size:12px;line-height:1.15}
   .heroTitleWrap{transform:translateY(-2vh)}
 }
+
+@media (pointer:coarse) and (max-width:950px){
+  .workRow{cursor:pointer}
+  .workRow::after{
+    content:"TAP TO PREVIEW";
+    position:absolute;
+    right:0;
+    bottom:8px;
+    color:#8a8881;
+    font:7px "DM Mono",monospace;
+    letter-spacing:.08em;
+    opacity:.72;
+    pointer-events:none;
+  }
+  .workRow.isActive::after{content:"PREVIEW SELECTED";color:var(--accent);opacity:1}
+  .selectedLinks a{min-height:48px;display:inline-flex;align-items:center}
+}
