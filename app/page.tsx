@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Copy, Mail, MoveUpRight } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 
 type Tone = "orange" | "violet" | "lime" | "blue" | "cyan" | "pink";
@@ -101,6 +103,8 @@ function InteractiveMesh() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
 
     const gl = canvas.getContext("webgl2", {
       alpha: true,
@@ -112,13 +116,18 @@ function InteractiveMesh() {
     const vertex = `#version 300 es
       precision highp float;
       layout(location=0) in vec2 aPosition;
+
       uniform float uTime;
       uniform float uScroll;
+      uniform float uScene;
       uniform vec2 uPointer;
       uniform vec2 uResolution;
-      uniform float uScale;
-      out float vDepth;
+      uniform float uLayer;
+      uniform float uPointPass;
+
       out float vGlow;
+      out float vDepth;
+      out float vScene;
 
       float hash(vec2 p){
         p = fract(p * vec2(127.1,311.7));
@@ -138,37 +147,64 @@ function InteractiveMesh() {
       }
 
       void main(){
-        vec2 p=aPosition*uScale;
-        float t=uTime*0.00042 + uScroll*2.4;
-        float n=noise(p*1.45+vec2(t*0.72,-t*0.34));
-        float wave=sin(p.x*3.2+t*2.0+n*2.4)*0.085;
-        wave+=cos(p.y*4.8-t*1.65+n*3.0)*0.05;
-        float d=distance(p,uPointer);
-        float force=exp(-d*d*3.7);
-        vec2 away=normalize(p-uPointer+vec2(0.001));
-        p+=away*force*0.09;
-        p.y+=wave+sin(p.x*8.0+t)*0.022;
+        vec2 p=aPosition;
+        float t=uTime*0.00022;
+        float s=uScene;
 
+        float n=noise(p*2.5 + vec2(t*1.4,-t*.8));
+        float n2=noise(p*5.3 + vec2(-t*.7,t*1.1));
+
+        float ripple=sin(length(p)*7.0 - t*7.0 + n*3.0);
+        float folds=sin((p.x*2.4-p.y*3.1)*(3.0+s*.8)+t*4.0);
+        float cross=cos((p.x+p.y*1.7)*5.0-t*2.6);
+        float wave=mix(ripple,folds,clamp(s/3.0,0.0,1.0));
+        wave += cross*.22 + n2*.34;
+
+        float d=distance(p,uPointer);
+        float force=exp(-d*d*5.0);
+        vec2 dir=normalize(p-uPointer+vec2(.0001));
+        p += dir * force * (.075 + s*.018);
+        p.y += wave*(.035 + uLayer*.018) + sin(p.x*8.0+t*3.0)*.018;
+
+        float depth=.22+n*.65+wave*.06;
+        float perspective=1.0/(1.0+depth*(.22+uLayer*.09));
+        vec2 q=p*perspective;
         float aspect=uResolution.x/max(1.0,uResolution.y);
-        float z=0.18+n*0.62;
-        vec2 q=p;
         q.x/=aspect;
-        q/=1.0+z*0.3;
+
+        float drift=sin(t*1.8+s)*.022;
+        q.x += drift*(.7-uLayer*.25);
+        q.y += sin(t*1.35+s*1.7)*.012;
+
         gl_Position=vec4(q,0.0,1.0);
-        vDepth=z;
+        gl_PointSize=1.3+force*5.0+uLayer*.35;
         vGlow=force;
+        vDepth=depth;
+        vScene=s;
       }
     `;
 
     const fragment = `#version 300 es
       precision highp float;
-      uniform vec3 uColor;
-      in float vDepth;
+      uniform vec3 uColorA;
+      uniform vec3 uColorB;
+      uniform float uPointPass;
       in float vGlow;
+      in float vDepth;
+      in float vScene;
       out vec4 outColor;
+
       void main(){
-        float alpha=0.16+(1.0-vDepth)*0.56;
-        outColor=vec4(uColor*(1.0+vGlow*3.2),alpha);
+        vec3 c=mix(uColorA,uColorB,clamp(vDepth*.75,0.0,1.0));
+        float alpha=.10+(1.0-vDepth)*.42+vGlow*1.8;
+
+        if(uPointPass>.5){
+          float d=distance(gl_PointCoord,vec2(.5));
+          float soft=smoothstep(.5,.05,d);
+          outColor=vec4(c*(1.0+vGlow*4.0),soft*(.2+vGlow*1.5));
+        }else{
+          outColor=vec4(c*(1.0+vGlow*2.1),alpha);
+        }
       }
     `;
 
@@ -192,66 +228,86 @@ function InteractiveMesh() {
     gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS)) return;
 
-    const size=42;
+    const size=52;
     const positions:number[]=[];
-    const indices:number[]=[];
+    const lines:number[]=[];
     for(let y=0;y<size;y++){
       for(let x=0;x<size;x++){
-        positions.push((x/(size-1)-0.5)*2,(y/(size-1)-0.5)*2);
+        positions.push((x/(size-1)-.5)*2,(y/(size-1)-.5)*2);
       }
     }
     for(let y=0;y<size;y++){
-      for(let x=0;x<size-1;x++){ const a=y*size+x; indices.push(a,a+1); }
+      for(let x=0;x<size-1;x++){ const a=y*size+x; lines.push(a,a+1); }
     }
     for(let x=0;x<size;x++){
-      for(let y=0;y<size-1;y++){ const a=y*size+x; indices.push(a,a+size); }
+      for(let y=0;y<size-1;y++){ const a=y*size+x; lines.push(a,a+size); }
     }
 
     const vao=gl.createVertexArray();
     const vbo=gl.createBuffer();
     const ebo=gl.createBuffer();
     if(!vao||!vbo||!ebo) return;
+
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ebo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(indices),gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(lines),gl.STATIC_DRAW);
 
     const uTime=gl.getUniformLocation(program,"uTime");
     const uScroll=gl.getUniformLocation(program,"uScroll");
+    const uScene=gl.getUniformLocation(program,"uScene");
     const uPointer=gl.getUniformLocation(program,"uPointer");
     const uResolution=gl.getUniformLocation(program,"uResolution");
-    const uScale=gl.getUniformLocation(program,"uScale");
-    const uColor=gl.getUniformLocation(program,"uColor");
+    const uLayer=gl.getUniformLocation(program,"uLayer");
+    const uPointPass=gl.getUniformLocation(program,"uPointPass");
+    const uColorA=gl.getUniformLocation(program,"uColorA");
+    const uColorB=gl.getUniformLocation(program,"uColorB");
 
     const pointer={x:0,y:0,tx:0,ty:0};
     const scroll={value:0,target:0};
+    const scene={value:0,target:0};
     let raf=0;
     let last=performance.now();
 
+    const palette=[
+      [1.0,.22,.04],[.18,.65,1.0],
+      [.30,.92,.49],[.78,.47,1.0],[.98,.34,.65]
+    ];
+
     const resize=()=>{
-      const dpr=Math.min(window.devicePixelRatio||1,1.55);
-      canvas.width=Math.max(1,Math.floor(window.innerWidth*dpr));
-      canvas.height=Math.max(1,Math.floor(window.innerHeight*dpr));
+      const dpr=Math.min(window.devicePixelRatio||1,1.5);
+      canvas.width=Math.max(1,Math.floor(innerWidth*dpr));
+      canvas.height=Math.max(1,Math.floor(innerHeight*dpr));
       gl.viewport(0,0,canvas.width,canvas.height);
     };
-    const move=(e:PointerEvent)=>{
-      pointer.tx=(e.clientX/window.innerWidth-0.5)*2;
-      pointer.ty=(0.5-e.clientY/window.innerHeight)*2;
+    const move=(ev:PointerEvent)=>{
+      pointer.tx=(ev.clientX/innerWidth-.5)*2;
+      pointer.ty=(.5-ev.clientY/innerHeight)*2;
     };
     const onScroll=()=>{
-      const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
-      scroll.target=window.scrollY/max;
+      const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
+      scroll.target=scrollY/max;
+    };
+    const onScene=(ev:Event)=>{
+      const custom=ev as CustomEvent<number>;
+      scene.target=Number.isFinite(custom.detail)?custom.detail:0;
     };
 
     const draw=(now:number)=>{
-      const dt=Math.min(0.05,(now-last)/1000);
+      const dt=Math.min(.05,(now-last)/1000);
       last=now;
       pointer.x+=(pointer.tx-pointer.x)*Math.min(1,dt*4.8);
       pointer.y+=(pointer.ty-pointer.y)*Math.min(1,dt*4.8);
-      scroll.value+=(scroll.target-scroll.value)*Math.min(1,dt*3);
+      scroll.value+=(scroll.target-scroll.value)*Math.min(1,dt*2.8);
+      scene.value+=(scene.target-scene.value)*Math.min(1,dt*2.4);
+
+      const index=Math.floor(scene.value)%palette.length;
+      const next=(index+1)%palette.length;
+      const mixV=scene.value-index;
+      const a=palette[index], b=palette[next];
 
       gl.clearColor(0,0,0,0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -261,16 +317,24 @@ function InteractiveMesh() {
       gl.bindVertexArray(vao);
       gl.uniform1f(uTime,now);
       gl.uniform1f(uScroll,scroll.value);
+      gl.uniform1f(uScene,scene.value);
       gl.uniform2f(uPointer,pointer.x,pointer.y);
       gl.uniform2f(uResolution,canvas.width,canvas.height);
 
-      gl.uniform1f(uScale,1);
-      gl.uniform3f(uColor,0.10,0.10,0.09);
-      gl.drawElements(gl.LINES,indices.length,gl.UNSIGNED_INT,0);
+      for(let layer=0;layer<3;layer++){
+        gl.uniform1f(uLayer,layer);
+        gl.uniform1f(uPointPass,0);
+        gl.uniform3f(uColorA,a[0],a[1],a[2]);
+        gl.uniform3f(uColorB,b[0],b[1],b[2]);
+        gl.uniform1f(uScene,scene.value+mixV*.15);
+        gl.drawElements(gl.LINES,lines.length,gl.UNSIGNED_INT,0);
+      }
 
-      gl.uniform1f(uScale,1.07);
-      gl.uniform3f(uColor,1,0.26,0.04);
-      gl.drawElements(gl.LINES,indices.length,gl.UNSIGNED_INT,0);
+      gl.uniform1f(uLayer,.5);
+      gl.uniform1f(uPointPass,1);
+      gl.uniform3f(uColorA,1,.28,.08);
+      gl.uniform3f(uColorB,1,.65,.25);
+      gl.drawArrays(gl.POINTS,0,positions.length/2);
 
       raf=requestAnimationFrame(draw);
     };
@@ -280,6 +344,7 @@ function InteractiveMesh() {
     window.addEventListener("resize",resize);
     window.addEventListener("pointermove",move,{passive:true});
     window.addEventListener("scroll",onScroll,{passive:true});
+    window.addEventListener("portfolio:scene",onScene as EventListener);
     raf=requestAnimationFrame(draw);
 
     return()=>{
@@ -287,6 +352,7 @@ function InteractiveMesh() {
       window.removeEventListener("resize",resize);
       window.removeEventListener("pointermove",move);
       window.removeEventListener("scroll",onScroll);
+      window.removeEventListener("portfolio:scene",onScene as EventListener);
       gl.deleteBuffer(vbo);
       gl.deleteBuffer(ebo);
       gl.deleteVertexArray(vao);
@@ -467,52 +533,106 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const lenis = new Lenis({
-      autoRaf: true,
+      autoRaf: false,
       anchors: true,
       lerp: 0.075,
       smoothWheel: true,
-      wheelMultiplier: 0.86,
+      wheelMultiplier: 0.84,
       syncTouch: true,
       respectReducedMotion: true,
     });
 
-    const reveals = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("isVisible");
-            observer.unobserve(entry.target);
+    const tick = (time:number) => lenis.raf(time * 1000);
+    gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
+
+    const root=document.documentElement;
+    const onMove=(event:PointerEvent)=>{
+      root.style.setProperty("--cursor-x", `${event.clientX}px`);
+      root.style.setProperty("--cursor-y", `${event.clientY}px`);
+    };
+    window.addEventListener("pointermove",onMove,{passive:true});
+
+    const sections=Array.from(document.querySelectorAll<HTMLElement>("section[id]"));
+    const sectionMap:Record<string,number>={top:0,works:1,about:2,contact:4};
+    const sceneObservers=sections.map((section)=>{
+      const io=new IntersectionObserver((entries)=>{
+        entries.forEach((entry)=>{
+          if(entry.isIntersecting){
+            const scene=sectionMap[section.id] ?? 3;
+            window.dispatchEvent(new CustomEvent("portfolio:scene",{detail:scene}));
           }
         });
-      },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.12 }
-    );
+      },{threshold:.3});
+      io.observe(section);
+      return io;
+    });
 
-    reveals.forEach((node) => observer.observe(node));
+    const ctx=gsap.context(()=>{
+      if(!reduce){
+        gsap.utils.toArray<HTMLElement>(".heroTitle .reveal").forEach((el,i)=>{
+          gsap.fromTo(el,{yPercent:110,opacity:0},{yPercent:0,opacity:1,duration:1.05,delay:.08+i*.10,ease:"expo.out"});
+        });
 
-    const onMove = (event: PointerEvent) => {
-      document.documentElement.style.setProperty("--cursor-x", `${event.clientX}px`);
-      document.documentElement.style.setProperty("--cursor-y", `${event.clientY}px`);
+        gsap.to(".heroTitleWrap",{yPercent:11,rotateX:2,scrollTrigger:{
+          trigger:".heroStage",start:"top top",end:"bottom top",scrub:1.2
+        }});
+
+        gsap.utils.toArray<HTMLElement>(".sectionHead h2").forEach((el)=>{
+          gsap.fromTo(el,{y:90,rotate:1.5,opacity:0},{
+            y:0,rotate:0,opacity:1,duration:1.15,ease:"expo.out",
+            scrollTrigger:{trigger:el,start:"top 88%",once:true}
+          });
+        });
+
+        gsap.utils.toArray<HTMLElement>(".aboutLead,.aboutCopy,.selectedVisual,.contactBig,.socialGrid").forEach((el,i)=>{
+          gsap.fromTo(el,{y:70,opacity:0,filter:"blur(8px)"},{
+            y:0,opacity:1,filter:"blur(0px)",duration:.95,delay:i*.035,ease:"power3.out",
+            scrollTrigger:{trigger:el,start:"top 88%",once:true}
+          });
+        });
+
+        gsap.utils.toArray<HTMLElement>(".projectVisual").forEach((el)=>{
+          gsap.to(el,{yPercent:-5,scrollTrigger:{trigger:el, start:"top bottom",end:"bottom top",scrub:1.4}});
+        });
+
+        gsap.utils.toArray<HTMLElement>(".skillWall > .reveal").forEach((el,i)=>{
+          gsap.fromTo(el,{y:35,rotate: i%2?-2:2,opacity:0},{
+            y:0,rotate:0,opacity:1,duration:.7,delay:(i%6)*.045,ease:"back.out(1.5)",
+            scrollTrigger:{trigger:el,start:"top 92%",once:true}
+          });
+        });
+
+        gsap.to(".contactSection",{backgroundPosition:"50% 20%",scrollTrigger:{
+          trigger:".contactSection",start:"top bottom",end:"bottom top",scrub:1.2
+        }});
+      } else {
+        gsap.set(".reveal,.sectionHead h2,.aboutLead,.aboutCopy,.selectedVisual,.contactBig,.socialGrid",{opacity:1,y:0});
+      }
+    });
+
+    ScrollTrigger.refresh();
+
+    const onScroll=()=>{
+      const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
+      root.style.setProperty("--scroll-progress",`${scrollY/max}`);
     };
-
-    const onScroll = () => {
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      document.documentElement.style.setProperty("--scroll-progress", `${window.scrollY / max}`);
-    };
-
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll",onScroll,{passive:true});
     onScroll();
 
-    return () => {
+    return()=>{
+      ctx.revert();
+      sceneObservers.forEach((io)=>io.disconnect());
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("scroll",onScroll);
+      gsap.ticker.remove(tick);
       lenis.destroy();
-      observer.disconnect();
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("scroll", onScroll);
     };
-  }, []);
+  },[]);
 
   const copyEmail = async () => {
     try {
