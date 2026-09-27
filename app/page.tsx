@@ -127,7 +127,7 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
   return <div className={`reveal ${className}`} style={{ "--delay": `${delay}ms` } as React.CSSProperties}>{children}</div>;
 }
 
-function Magnetic({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Magnetic({ children, className = "", ...props }: React.ComponentPropsWithoutRef<"a"> & { children: React.ReactNode }) {
   const ref = useRef<HTMLAnchorElement>(null);
 
   const onMove = (event: React.PointerEvent<HTMLAnchorElement>) => {
@@ -145,7 +145,7 @@ function Magnetic({ children, className = "" }: { children: React.ReactNode; cla
     ref.current?.style.setProperty("--my", "0px");
   };
 
-  return <a ref={ref} className={`magnetic ${className}`} onPointerMove={onMove} onPointerLeave={reset}>{children}</a>;
+  return <a {...props} ref={ref} className={`magnetic ${className}`} onPointerMove={onMove} onPointerLeave={reset}>{children}</a>;
 }
 
 export default function Home() {
