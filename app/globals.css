@@ -835,3 +835,25 @@ html,body{overscroll-behavior-y:none}
 .heroStage::before{will-change:transform}
 .selectedFrame{will-change:transform}
 .projectVisual,.visualGrid,.visualOrb,.visualArc,.sketchWindow,.faceScanner,.carShape,.irisFlower,.unemploymentChart{will-change:transform}
+
+/* Keep all authored content above the ambient canvas */
+.heroStage > *,
+.sectionShell > *,
+.footer > * {
+  position: relative;
+  z-index: 2;
+}
+
+.heroStage::before,
+.sectionShell::after {
+  z-index: 1;
+}
+
+.interactiveMesh,
+.ambientOrbs {
+  z-index: 0;
+}
+
+.interactiveMesh + .ambientOrbs {
+  z-index: 1;
+}
