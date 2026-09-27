@@ -802,3 +802,36 @@ a:hover ~ .cursorRing{width:56px;height:56px}
   .workRow:hover .workTitle{letter-spacing:-.065em}
   .selectedFrame:hover .projectVisual{filter:saturate(1.15) contrast(1.04)}
 }
+
+html,body{overscroll-behavior-y:none}
+.sectionShell{position:relative}
+.cursorRing::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.6);
+  opacity:0;
+  font:7px "DM Mono",monospace;
+  letter-spacing:.08em;
+  transition:opacity .25s ease,transform .25s ease;
+}
+.site:has(a:hover) .cursorRing,
+.site:has(button:hover) .cursorRing{
+  width:62px;
+  height:62px;
+  border-color:rgba(255,74,10,.58);
+  background:rgba(255,74,10,.035);
+}
+.site:has(a:hover) .cursorRing::after,
+.site:has(button:hover) .cursorRing::after{
+  content:"OPEN";
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+.site:has(.workRow:hover) .cursorRing::after{content:"VIEW"}
+.site:has(.emailButton:hover) .cursorRing::after{content:"MAIL"}
+.heroStage{will-change:transform}
+.heroStage::before{will-change:transform}
+.selectedFrame{will-change:transform}
+.projectVisual,.visualGrid,.visualOrb,.visualArc,.sketchWindow,.faceScanner,.carShape,.irisFlower,.unemploymentChart{will-change:transform}
