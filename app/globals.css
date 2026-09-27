@@ -1442,3 +1442,69 @@ html,body{overscroll-behavior-y:none}
     font-size:8px;
   }
 }
+
+/* Hero sound control — elevated focal CTA */
+.heroSoundFloat{
+  position:relative;
+  z-index:5;
+  width:max-content;
+  margin-top:22px;
+}
+.heroSoundFloat .soundToggle{
+  min-width:220px;
+  min-height:56px;
+  justify-content:center;
+  padding:0 22px;
+  border:1px solid rgba(255,74,10,.52);
+  border-radius:999px;
+  background:rgba(255,244,238,.82);
+  color:var(--ink);
+  box-shadow:
+    0 14px 40px rgba(255,74,10,.13),
+    0 0 0 6px rgba(255,74,10,.035);
+  backdrop-filter:blur(16px);
+  font-size:9px;
+  letter-spacing:.12em;
+}
+.heroSoundFloat .soundToggle::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(90deg,rgba(255,74,10,.08),transparent 42%,rgba(255,74,10,.05));
+  pointer-events:none;
+}
+.heroSoundFloat .soundToggle:not(.isOn)::after{
+  content:"TAP TO HEAR";
+  margin-left:11px;
+  color:var(--accent);
+  font-size:7px;
+}
+.heroSoundFloat .soundToggle:hover,
+.heroSoundFloat .soundToggle.isOn{
+  transform:translateY(-3px) scale(1.025);
+  border-color:rgba(255,74,10,.8);
+  background:rgba(255,249,246,.94);
+  box-shadow:
+    0 18px 48px rgba(255,74,10,.17),
+    0 0 0 8px rgba(255,74,10,.045);
+}
+.heroSoundFloat .soundBars{
+  width:16px;
+  height:14px;
+  gap:3px;
+}
+.heroSoundFloat .soundBars i{
+  width:2px;
+}
+@media(max-width:640px){
+  .heroSoundFloat{
+    margin-top:17px;
+  }
+  .heroSoundFloat .soundToggle{
+    min-width:205px;
+    min-height:52px;
+    padding:0 18px;
+    font-size:8px;
+  }
+}
