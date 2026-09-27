@@ -571,6 +571,19 @@ button { border: 0; background: none; }
 
 .socialGrid a:hover { padding-left: 8px; }
 
+.brandMark {
+  min-width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font: 700 8px/1 "Space Grotesk", sans-serif;
+  letter-spacing: -.04em;
+  text-transform: none;
+}
+
 .footer {
   display: flex;
   justify-content: space-between;
