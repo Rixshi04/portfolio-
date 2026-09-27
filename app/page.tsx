@@ -3,11 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ArrowUpRight, Github, Linkedin, Mail, BrainCircuit, Code2, Database, ExternalLink } from "lucide-react";
 
-const projects = [
-  {title:"Sketch2Code — AI-Based Sketch Interpretation",tag:"AI / Computer Vision",desc:"AI-based handwritten UI sketch interpretation that generates human-centric HTML/CSS code with a live preview workflow.",stack:"Next.js · TypeScript · FastAPI · Python · Machine Learning",href:"https://github.com/Rixshi04/sketch2code-AI-based-sketch-interpretation-for-human-centric-html-css-code-generation"},
-  {title:"Deep-Fake Video & Audio Detector",tag:"Deep Learning",desc:"Multimodal AI/ML system for detecting deepfake content across video and audio using CNN and LSTM-based approaches.",stack:"Python · CNN · LSTM · TensorFlow / PyTorch",href:"https://github.com/Rixshi04/Deep-Fake-video-audio-detector-using-Artificial-intelligence-and-Machine-Learning-"},
-  {title:"Disaster Management Drone Automation",tag:"Computer Vision",desc:"GPS-free drone analytics and offline flood-mapping concept designed for visual analysis in disaster environments with limited connectivity.",stack:"Python · Computer Vision · CNN · Drone Analytics",href:"https://github.com/Rixshi04"}
-];
+const projects = [];
 
 const skills = ["Python","Java","SQL","Machine Learning","Computer Vision","PyTorch","TensorFlow","FastAPI","Flask","Next.js","TypeScript","React","Tailwind CSS","Postman","Pytest","Selenium","AWS","Docker","Git"];
 
