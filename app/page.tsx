@@ -9,8 +9,6 @@ import {
   Code2,
   Database,
   ExternalLink,
-  Github,
-  Linkedin,
   Mail,
   MapPin,
   Sparkles,
@@ -480,10 +478,10 @@ export default function Home() {
 
           <div className="heroMeta">
             <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              <Github size={17} /> GitHub
+              <span className="socialMark">GH</span> GitHub
             </a>
             <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
-              <Linkedin size={17} /> LinkedIn
+              <span className="socialMark">in</span> LinkedIn
             </a>
             <span>
               <MapPin size={16} /> Chennai, India
@@ -738,7 +736,7 @@ export default function Home() {
               s.rishikumar04@gmail.com <ArrowUpRight size={17} />
             </a>
             <a className="button buttonGhost" href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              GitHub <Github size={16} />
+              GitHub <span className="socialMark">GH</span>
             </a>
           </div>
         </div>
