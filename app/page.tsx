@@ -43,6 +43,7 @@ const projects: Project[] = [
       "A multimodal detection pipeline combining CNN visual features, LSTM temporal modeling, and audio spectrogram analysis to classify potentially manipulated media.",
     stack: ["Python", "CNN", "LSTM", "PyTorch", "OpenCV", "Librosa", "Flask"],
     href: "https://github.com/Rixshi04/Deep-Fake-video-audio-detector-using-Artificial-intelligence-and-Machine-Learning-",
+    live: "https://deepfake-video-detector.vercel.app",
     featured: true,
   },
   {
@@ -379,8 +380,46 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section splitSection credentialsSection">
+        <SectionLabel>03 / EDUCATION &amp; CREDENTIALS</SectionLabel>
+        <div className="sectionBody">
+          <div className="credentialsGrid">
+            <div className="credentialBlock">
+              <p className="kicker">EDUCATION</p>
+              <h3>Sathyabama Institute of Science and Technology</h3>
+              <p className="credentialTitle">B.E. Computer Science and Engineering (Data Science)</p>
+              <div className="credentialMeta">
+                <span>2022 — 2026</span>
+                <span>CGPA 7.30 / 10.0</span>
+                <span>Chennai</span>
+              </div>
+            </div>
+
+            <div className="credentialBlock">
+              <p className="kicker">CERTIFICATIONS</p>
+              <div className="certList">
+                <div className="certItem">
+                  <div>
+                    <strong>NSIC — AI Model Development using MLOps</strong>
+                    <span>February 2025</span>
+                  </div>
+                  <Sparkles size={17} />
+                </div>
+                <div className="certItem">
+                  <div>
+                    <strong>Deloitte — Data Analytics &amp; Visualisation Tools</strong>
+                    <span>February 2026</span>
+                  </div>
+                  <Database size={17} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="projects" className="section splitSection projectsSection">
-        <SectionLabel>03 / SELECTED WORK</SectionLabel>
+        <SectionLabel>04 / SELECTED WORK</SectionLabel>
         <div className="sectionBody">
           <div className="projectsIntro">
             <div>
@@ -431,7 +470,7 @@ export default function Home() {
       </section>
 
       <section id="skills" className="section splitSection">
-        <SectionLabel>04 / TOOLKIT</SectionLabel>
+        <SectionLabel>05 / TOOLKIT</SectionLabel>
         <div className="sectionBody">
           <div className="projectsIntro">
             <div>
@@ -463,7 +502,7 @@ export default function Home() {
       </section>
 
       <section className="section philosophySection">
-        <SectionLabel>05 / HOW I WORK</SectionLabel>
+        <SectionLabel>06 / HOW I WORK</SectionLabel>
         <div className="sectionBody">
           <div className="philosophyGrid">
             <div>
@@ -486,7 +525,7 @@ export default function Home() {
       </section>
 
       <section id="contact" className="contactSection">
-        <div className="contactLabel">06 / CONTACT</div>
+        <div className="contactLabel">07 / CONTACT</div>
         <div>
           <p className="kicker">LET&apos;S BUILD SOMETHING USEFUL</p>
           <h2>
