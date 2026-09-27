@@ -365,191 +365,286 @@ function InteractiveMesh() {
   return <canvas className="interactiveMesh" ref={canvasRef} aria-hidden="true" />;
 }
 
-function InteractiveSound() {
-  const audioRef = useRef<{
-    ctx: AudioContext;
-    master: GainNode;
-    filter: BiquadFilterNode;
-    pan: StereoPannerNode;
-    padGain: GainNode;
-    started: boolean;
-    lastNote: number;
-    lastTrigger: number;
-  } | null>(null);
+
+type SharedAudio = {
+  ctx: AudioContext;
+  master: GainNode;
+  filter: BiquadFilterNode;
+  pan: StereoPannerNode;
+  padGain: GainNode;
+  started: boolean;
+  lastNote: number;
+  lastTrigger: number;
+  lastScrollTrigger: number;
+  lastScrollY: number;
+};
+
+let sharedAudio: SharedAudio | null = null;
+const soundSubscribers = new Set<(enabled: boolean) => void>();
+let soundInteractionRefs = 0;
+let soundInteractionCleanup: (() => void) | null = null;
+
+const notifySoundState = (enabled: boolean) => {
+  soundSubscribers.forEach((subscriber) => subscriber(enabled));
+  window.dispatchEvent(new CustomEvent("portfolio:sound-state", { detail: enabled }));
+};
+
+const createSharedAudio = () => {
+  if (sharedAudio) return sharedAudio;
+
+  const AudioCtor =
+    window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtor) return null;
+
+  const ctx = new AudioCtor();
+  const master = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const pan = ctx.createStereoPanner();
+  const padGain = ctx.createGain();
+
+  master.gain.value = 0.34;
+  filter.type = "lowpass";
+  filter.frequency.value = 2600;
+  filter.Q.value = 0.45;
+  pan.pan.value = 0;
+  padGain.gain.value = 0;
+
+  padGain.connect(filter);
+  filter.connect(pan);
+  pan.connect(master);
+  master.connect(ctx.destination);
+
+  const padA = ctx.createOscillator();
+  const padB = ctx.createOscillator();
+  padA.type = "sine";
+  padB.type = "triangle";
+  padA.frequency.value = 146.83;
+  padB.frequency.value = 220;
+  padA.detune.value = -4;
+  padB.detune.value = 5;
+  padA.connect(padGain);
+  padB.connect(padGain);
+  padA.start();
+  padB.start();
+
+  sharedAudio = {
+    ctx,
+    master,
+    filter,
+    pan,
+    padGain,
+    started: false,
+    lastNote: -1,
+    lastTrigger: 0,
+    lastScrollTrigger: 0,
+    lastScrollY: window.scrollY,
+  };
+
+  return sharedAudio;
+};
+
+const midiToFrequency = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
+
+const playSharedNote = (
+  midi: number,
+  options?: { duration?: number; gain?: number; filter?: number; detune?: number }
+) => {
+  const audio = sharedAudio;
+  if (!audio || !audio.started || audio.ctx.state !== "running") return;
+
+  const now = audio.ctx.currentTime;
+  const duration = options?.duration ?? 0.72;
+  const gainAmount = options?.gain ?? 0.16;
+  const filterFrequency = options?.filter ?? 3200;
+  const detune = options?.detune ?? 0;
+
+  const osc = audio.ctx.createOscillator();
+  const noteGain = audio.ctx.createGain();
+  const noteFilter = audio.ctx.createBiquadFilter();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(midiToFrequency(midi), now);
+  osc.detune.setValueAtTime(detune, now);
+
+  noteFilter.type = "lowpass";
+  noteFilter.frequency.setValueAtTime(filterFrequency, now);
+  noteFilter.Q.value = 0.7;
+
+  noteGain.gain.setValueAtTime(0.0001, now);
+  noteGain.gain.exponentialRampToValueAtTime(gainAmount, now + 0.035);
+  noteGain.gain.exponentialRampToValueAtTime(0.018, now + Math.min(.26, duration * .35));
+  noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  osc.connect(noteFilter);
+  noteFilter.connect(noteGain);
+  noteGain.connect(audio.filter);
+  osc.start(now);
+  osc.stop(now + duration + 0.03);
+};
+
+const startSharedSound = async () => {
+  const audio = createSharedAudio();
+  if (!audio) return false;
+  if (audio.ctx.state === "suspended") await audio.ctx.resume();
+
+  const now = audio.ctx.currentTime;
+  audio.padGain.gain.cancelScheduledValues(now);
+  audio.padGain.gain.setValueAtTime(Math.max(0.0001, audio.padGain.gain.value), now);
+  audio.padGain.gain.linearRampToValueAtTime(0.12, now + 1.15);
+
+  const osc = audio.ctx.createOscillator();
+  const noteGain = audio.ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(261.63, now);
+  noteGain.gain.setValueAtTime(0.0001, now);
+  noteGain.gain.exponentialRampToValueAtTime(0.15, now + 0.025);
+  noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+  osc.connect(noteGain);
+  noteGain.connect(audio.master);
+  osc.start(now);
+  osc.stop(now + 0.95);
+
+  audio.started = true;
+  audio.lastScrollY = window.scrollY;
+  notifySoundState(true);
+  return true;
+};
+
+const stopSharedSound = () => {
+  const audio = sharedAudio;
+  if (!audio) {
+    notifySoundState(false);
+    return;
+  }
+
+  const now = audio.ctx.currentTime;
+  audio.padGain.gain.cancelScheduledValues(now);
+  audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
+  audio.padGain.gain.linearRampToValueAtTime(0, now + 0.45);
+  audio.started = false;
+  notifySoundState(false);
+};
+
+const installSharedSoundInteractions = () => {
+  soundInteractionRefs += 1;
+  if (soundInteractionCleanup || typeof window === "undefined") return;
+
+  const onPointerDown = () => {
+    const audio = sharedAudio;
+    if (audio && audio.ctx.state === "suspended") {
+      audio.ctx.resume();
+    }
+  };
+
+  const onPointerMove = (event: PointerEvent) => {
+    const audio = sharedAudio;
+    if (!audio || !audio.started || audio.ctx.state !== "running") return;
+
+    const x = event.clientX / Math.max(1, innerWidth);
+    const y = event.clientY / Math.max(1, innerHeight);
+    const panValue = x * 2 - 1;
+    const brightness = 900 + (1 - y) * 4200;
+
+    audio.pan.pan.setTargetAtTime(panValue * 0.42, audio.ctx.currentTime, 0.08);
+    audio.filter.frequency.setTargetAtTime(brightness, audio.ctx.currentTime, 0.16);
+
+    const scale = [0, 2, 4, 7, 9, 12];
+    const octave = y < 0.34 ? 2 : y < 0.67 ? 1 : 0;
+    const degree = Math.min(scale.length - 1, Math.floor(x * scale.length));
+    const midi = 50 + octave * 12 + scale[degree];
+    const nowMs = performance.now();
+
+    if (Math.abs(audio.lastNote - midi) < 1 || nowMs - audio.lastTrigger < 155) return;
+
+    audio.lastNote = midi;
+    audio.lastTrigger = nowMs;
+    playSharedNote(midi, {
+      duration: 0.72,
+      gain: 0.16,
+      filter: 1300 + (1 - y) * 3000,
+      detune: (x - 0.5) * 16,
+    });
+  };
+
+  const onScroll = () => {
+    const audio = sharedAudio;
+    if (!audio || !audio.started || audio.ctx.state !== "running") return;
+
+    const currentY = window.scrollY;
+    const delta = currentY - audio.lastScrollY;
+    audio.lastScrollY = currentY;
+
+    const magnitude = Math.abs(delta);
+    const nowMs = performance.now();
+
+    if (magnitude < 3 || nowMs - audio.lastScrollTrigger < 145) return;
+
+    const progress =
+      currentY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const directionOctave = delta < 0 ? 1 : 0;
+    const scale = [0, 2, 4, 7, 9, 12];
+    const degree = Math.min(scale.length - 1, Math.floor(Math.min(1, magnitude / 24) * scale.length));
+    const midi = 57 + directionOctave * 12 + scale[degree];
+
+    audio.lastScrollTrigger = nowMs;
+    playSharedNote(midi, {
+      duration: 0.42 + Math.min(0.28, magnitude / 80),
+      gain: 0.10 + Math.min(0.045, magnitude / 260),
+      filter: 1500 + progress * 2600,
+      detune: delta < 0 ? -7 : 5,
+    });
+  };
+
+  window.addEventListener("pointerdown", onPointerDown, { passive: true });
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  soundInteractionCleanup = () => {
+    window.removeEventListener("pointerdown", onPointerDown);
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("scroll", onScroll);
+    soundInteractionCleanup = null;
+  };
+};
+
+const uninstallSharedSoundInteractions = () => {
+  soundInteractionRefs = Math.max(0, soundInteractionRefs - 1);
+  if (soundInteractionRefs === 0 && soundInteractionCleanup) {
+    soundInteractionCleanup();
+  }
+};
+
+function InteractiveSound({ className = "" }: { className?: string }) {
   const [enabled, setEnabled] = useState(false);
 
-  const createAudio = () => {
-    if (audioRef.current) return audioRef.current;
-
-    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtor) return null;
-
-    const ctx = new AudioCtor();
-    const master = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    const pan = ctx.createStereoPanner();
-    const padGain = ctx.createGain();
-
-    master.gain.value = 0.34;
-    filter.type = "lowpass";
-    filter.frequency.value = 2600;
-    filter.Q.value = 0.45;
-    pan.pan.value = 0;
-    padGain.gain.value = 0;
-
-    padGain.connect(filter);
-    filter.connect(pan);
-    pan.connect(master);
-    master.connect(ctx.destination);
-
-    const padA = ctx.createOscillator();
-    const padB = ctx.createOscillator();
-    padA.type = "sine";
-    padB.type = "triangle";
-    padA.frequency.value = 146.83;
-    padB.frequency.value = 220;
-    padA.detune.value = -4;
-    padB.detune.value = 5;
-    padA.connect(padGain);
-    padB.connect(padGain);
-    padA.start();
-    padB.start();
-
-    audioRef.current = {
-      ctx,
-      master,
-      filter,
-      pan,
-      padGain,
-      started: false,
-      lastNote: -1,
-      lastTrigger: 0,
-    };
-    return audioRef.current;
-  };
-
-  const startSound = async () => {
-    const audio = createAudio();
-    if (!audio) return;
-    if (audio.ctx.state === "suspended") await audio.ctx.resume();
-
-    const now = audio.ctx.currentTime;
-    audio.padGain.gain.cancelScheduledValues(now);
-    audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
-    audio.padGain.gain.linearRampToValueAtTime(0.12, now + 1.15);
-
-    const osc = audio.ctx.createOscillator();
-    const noteGain = audio.ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(261.63, now);
-    noteGain.gain.setValueAtTime(0.0001, now);
-    noteGain.gain.exponentialRampToValueAtTime(0.15, now + 0.025);
-    noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
-    osc.connect(noteGain);
-    noteGain.connect(audio.master);
-    osc.start(now);
-    osc.stop(now + 0.95);
-
-    audio.started = true;
-    setEnabled(true);
-  };
-
-  const stopSound = () => {
-    const audio = audioRef.current;
-    if (!audio) {
-      setEnabled(false);
-      return;
-    }
-    const now = audio.ctx.currentTime;
-    audio.padGain.gain.cancelScheduledValues(now);
-    audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
-    audio.padGain.gain.linearRampToValueAtTime(0, now + 0.45);
-    audio.started = false;
-    setEnabled(false);
-  };
-
-  const toggleSound = async () => {
-    if (enabled) stopSound();
-    else await startSound();
-  };
-
   useEffect(() => {
-    const onPointerDown = () => {
-      const audio = audioRef.current;
-      if (audio && audio.ctx.state === "suspended") audio.ctx.resume();
-    };
-
-    const onPointerMove = (event: PointerEvent) => {
-      const audio = audioRef.current;
-      if (!audio || !audio.started) return;
-
-      const x = event.clientX / Math.max(1, innerWidth);
-      const y = event.clientY / Math.max(1, innerHeight);
-      const panValue = x * 2 - 1;
-      const brightness = 900 + (1 - y) * 4200;
-      audio.pan.pan.setTargetAtTime(panValue * 0.42, audio.ctx.currentTime, 0.08);
-      audio.filter.frequency.setTargetAtTime(brightness, audio.ctx.currentTime, 0.16);
-
-      const scale = [0, 2, 4, 7, 9, 12];
-      const octave = y < 0.34 ? 2 : y < 0.67 ? 1 : 0;
-      const degree = Math.min(scale.length - 1, Math.floor(x * scale.length));
-      const midi = 50 + octave * 12 + scale[degree];
-      const nowMs = performance.now();
-
-      if (Math.abs(audio.lastNote - midi) < 1 || nowMs - audio.lastTrigger < 155) return;
-
-      audio.lastNote = midi;
-      audio.lastTrigger = nowMs;
-
-      const now = audio.ctx.currentTime;
-      const frequency = 440 * Math.pow(2, (midi - 69) / 12);
-
-      const osc = audio.ctx.createOscillator();
-      const noteGain = audio.ctx.createGain();
-      const noteFilter = audio.ctx.createBiquadFilter();
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequency, now);
-      osc.detune.setValueAtTime((x - 0.5) * 16, now);
-
-      noteFilter.type = "lowpass";
-      noteFilter.frequency.setValueAtTime(1300 + (1 - y) * 3000, now);
-      noteFilter.Q.value = 0.7;
-
-      noteGain.gain.setValueAtTime(0, now);
-      noteGain.gain.linearRampToValueAtTime(0.16, now + 0.035);
-      noteGain.gain.exponentialRampToValueAtTime(0.018, now + 0.22);
-      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
-
-      osc.connect(noteFilter);
-      noteFilter.connect(noteGain);
-      noteGain.connect(audio.filter);
-      osc.start(now);
-      osc.stop(now + 0.75);
-    };
-
-    window.addEventListener("pointerdown", onPointerDown, { passive: true });
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    const subscriber = (nextEnabled: boolean) => setEnabled(nextEnabled);
+    soundSubscribers.add(subscriber);
+    setEnabled(Boolean(sharedAudio?.started));
+    installSharedSoundInteractions();
 
     return () => {
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      const audio = audioRef.current;
-      if (audio) {
-        audio.master.gain.cancelScheduledValues(audio.ctx.currentTime);
-        audio.master.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.08);
-        window.setTimeout(() => audio.ctx.close(), 180);
-      }
+      soundSubscribers.delete(subscriber);
+      uninstallSharedSoundInteractions();
     };
   }, []);
+
+  const toggleSound = async () => {
+    if (sharedAudio?.started) {
+      stopSharedSound();
+      return;
+    }
+    await startSharedSound();
+  };
 
   return (
     <button
       type="button"
-      className={`soundToggle ${enabled ? "isOn" : ""}`}
+      className={`soundToggle ${enabled ? "isOn" : ""} ${className}`}
       onClick={toggleSound}
-      aria-label={enabled ? "Mute ambient sound" : "Enable ambient sound"}
-      title={enabled ? "Mute ambient sound" : "Enable ambient sound"}
+      aria-label={enabled ? "Mute ambient and scroll sound" : "Enable ambient and scroll sound"}
+      title={enabled ? "Mute ambient and scroll sound" : "Enable ambient and scroll sound"}
     >
       <span className="soundBars" aria-hidden="true"><i /><i /><i /><i /></span>
       <span>{enabled ? "SOUND ON" : "SOUND OFF"}</span>
@@ -967,6 +1062,9 @@ export default function Home() {
           <Reveal className="heroHeadline" delay={280}>
             <span>MACHINE LEARNING</span>
             <span>ENGINEER · AI · COMPUTER VISION</span>
+          </Reveal>
+          <Reveal className="heroSoundReveal heroSoundFloat" delay={340}>
+            <InteractiveSound />
           </Reveal>
           <div className="heroUtility">
             <Reveal className="heroDescription" delay={390}>
