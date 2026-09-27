@@ -365,6 +365,24 @@ function InteractiveMesh() {
   return <canvas className="interactiveMesh" ref={canvasRef} aria-hidden="true" />;
 }
 
+function SolarSystemBackdrop() {
+  return (
+    <div className="solarSystem" aria-hidden="true">
+      <div className="solarStars" />
+      <div className="solarScene">
+        <div className="solarSun"><span /></div>
+        <div className="solarOrbit solarOrbit1"><div className="solarPlanetTrack"><i className="solarPlanet planet1" /></div></div>
+        <div className="solarOrbit solarOrbit2"><div className="solarPlanetTrack"><i className="solarPlanet planet2" /></div></div>
+        <div className="solarOrbit solarOrbit3"><div className="solarPlanetTrack"><i className="solarPlanet planet3" /></div></div>
+        <div className="solarOrbit solarOrbit4"><div className="solarPlanetTrack"><i className="solarPlanet planet4" /></div></div>
+        <div className="solarOrbit solarOrbit5"><div className="solarPlanetTrack"><i className="solarPlanet planet5" /></div></div>
+        <div className="solarLabel solarLabelSun">01 / SUN</div>
+        <div className="solarLabel solarLabelSystem">SOLAR SYSTEM / SCROLL TO ZOOM OUT</div>
+      </div>
+    </div>
+  );
+}
+
 function ProjectVisual({ project }: { project: Project }) {
   if (project.number === "01") {
     return (
@@ -646,7 +664,10 @@ export default function Home() {
 
     const onScroll=()=>{
       const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
-      root.style.setProperty("--scroll-progress",`${scrollY/max}`);
+      const progress=scrollY/max;
+      const solarProgress=Math.min(1,scrollY/Math.max(1,innerHeight*4.6));
+      root.style.setProperty("--scroll-progress",String(progress));
+      root.style.setProperty("--solar-progress",String(solarProgress));
     };
     window.addEventListener("scroll",onScroll,{passive:true});
     onScroll();
@@ -674,6 +695,7 @@ export default function Home() {
   return (
     <main className={`site ${loaded ? "siteLoaded" : ""}`}>
       <InteractiveMesh />
+      <SolarSystemBackdrop />
       <div className="ambientOrbs" aria-hidden="true"><span/><span/><span/></div>
       <div className="loader" aria-hidden={!loaded}>
         <div className="loaderTop"><span>RISHI KUMAR</span><span>2026</span></div>
