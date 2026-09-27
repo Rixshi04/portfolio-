@@ -688,7 +688,7 @@ export default function Home() {
       </div>
 
       <header className="topbar">
-        <a href="#top" className="wordmark">RK<span>.</span></a>
+        <a href="#top" className="wordmark">RISHI KUMAR<span>.</span></a>
         <p className="descriptor">
           MACHINE LEARNING ENGINEER<br />
           AI · COMPUTER VISION · DATA
@@ -709,12 +709,15 @@ export default function Home() {
         </div>
 
         <div className="heroTitleWrap">
-          <Reveal className="heroMicro"><span>RISHI KUMAR / DATA SCIENCE GRADUATE</span></Reveal>
-          <h1 className="heroTitle">
-            <Reveal delay={80}><SplitLineText>BUILDING</SplitLineText></Reveal>
-            <Reveal delay={160}><SplitLineText>INTELLIGENT</SplitLineText></Reveal>
-            <Reveal delay={240}><SplitLineText className="accentText">SYSTEMS.</SplitLineText></Reveal>
+          <Reveal className="heroMicro"><span>01 / RISHI KUMAR</span></Reveal>
+          <h1 className="heroName">
+            <Reveal delay={100}><span>RISHI</span></Reveal>
+            <Reveal delay={180}><span>KUMAR<span className="accentText">.</span></span></Reveal>
           </h1>
+          <Reveal className="heroHeadline" delay={280}>
+            <span>MACHINE LEARNING</span>
+            <span>ENGINEER · AI · COMPUTER VISION</span>
+          </Reveal>
           <div className="heroUtility">
             <Reveal className="heroDescription" delay={330}>
               <p>I design machine learning, computer vision and data products where models become useful, understandable software.</p>
