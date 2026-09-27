@@ -390,7 +390,7 @@ function InteractiveSound() {
     const pan = ctx.createStereoPanner();
     const padGain = ctx.createGain();
 
-    master.gain.value = 0.24;
+    master.gain.value = 0.34;
     filter.type = "lowpass";
     filter.frequency.value = 2600;
     filter.Q.value = 0.45;
@@ -436,7 +436,7 @@ function InteractiveSound() {
     const now = audio.ctx.currentTime;
     audio.padGain.gain.cancelScheduledValues(now);
     audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
-    audio.padGain.gain.linearRampToValueAtTime(0.085, now + 1.15);
+    audio.padGain.gain.linearRampToValueAtTime(0.12, now + 1.15);
 
     const osc = audio.ctx.createOscillator();
     const noteGain = audio.ctx.createGain();
@@ -517,7 +517,7 @@ function InteractiveSound() {
       noteFilter.Q.value = 0.7;
 
       noteGain.gain.setValueAtTime(0, now);
-      noteGain.gain.linearRampToValueAtTime(0.12, now + 0.035);
+      noteGain.gain.linearRampToValueAtTime(0.16, now + 0.035);
       noteGain.gain.exponentialRampToValueAtTime(0.018, now + 0.22);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
 
@@ -948,19 +948,19 @@ export default function Home() {
             <span>MACHINE LEARNING</span>
             <span>ENGINEER · AI · COMPUTER VISION</span>
           </Reveal>
+          <Reveal className="heroSoundReveal heroSoundFloat" delay={340}>
+            <InteractiveSound />
+          </Reveal>
           <div className="heroUtility">
-            <Reveal className="heroDescription" delay={330}>
+            <Reveal className="heroDescription" delay={390}>
               <p>I design machine learning, computer vision and data products where models become useful, understandable software.</p>
             </Reveal>
-            <Reveal className="heroHeroCTA" delay={390}>
+            <Reveal className="heroHeroCTA" delay={420}>
               <a href="#works">EXPLORE SELECTED WORK <MoveUpRight size={15} strokeWidth={1.7} /></a>
             </Reveal>
-            <Reveal className="heroMeta" delay={440}>
+            <Reveal className="heroMeta" delay={470}>
               <span>PYTHON / PYTORCH / OPENCV / NEXT.JS</span>
               <span>SCROLL ↓</span>
-            </Reveal>
-            <Reveal className="heroSoundReveal" delay={500}>
-              <InteractiveSound />
             </Reveal>
           </div>
         </div>
