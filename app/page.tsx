@@ -775,7 +775,29 @@ export default function Home() {
                     className={`workRow ${isActive ? "isActive" : ""}`}
                     onMouseEnter={() => setActiveProject(index)}
                   >
-                    <a href={project.href} target="_blank" rel="noreferrer" className="workLink">
+                    <a
+                      href={project.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="workLink"
+                      onPointerDown={(event) => {
+                        if (event.pointerType === "touch") {
+                          setActiveProject(index);
+                        }
+                      }}
+                      onClick={(event) => {
+                        if (window.matchMedia("(pointer: coarse)").matches) {
+                          event.preventDefault();
+                          setActiveProject(index);
+                          window.requestAnimationFrame(() => {
+                            document.querySelector(".selectedVisual")?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center",
+                            });
+                          });
+                        }
+                      }}
+                    >
                       <span className="workNo">{project.number}</span>
                       <span className="workTitle">{project.title}</span>
                       <span className="workType">{project.category}</span>
