@@ -390,7 +390,7 @@ function InteractiveSound() {
     const pan = ctx.createStereoPanner();
     const padGain = ctx.createGain();
 
-    master.gain.value = 0.11;
+    master.gain.value = 0.24;
     filter.type = "lowpass";
     filter.frequency.value = 2600;
     filter.Q.value = 0.45;
@@ -436,7 +436,20 @@ function InteractiveSound() {
     const now = audio.ctx.currentTime;
     audio.padGain.gain.cancelScheduledValues(now);
     audio.padGain.gain.setValueAtTime(audio.padGain.gain.value, now);
-    audio.padGain.gain.linearRampToValueAtTime(0.032, now + 1.6);
+    audio.padGain.gain.linearRampToValueAtTime(0.085, now + 1.15);
+
+    const osc = audio.ctx.createOscillator();
+    const noteGain = audio.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(261.63, now);
+    noteGain.gain.setValueAtTime(0.0001, now);
+    noteGain.gain.exponentialRampToValueAtTime(0.15, now + 0.025);
+    noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+    osc.connect(noteGain);
+    noteGain.connect(audio.master);
+    osc.start(now);
+    osc.stop(now + 0.95);
+
     audio.started = true;
     setEnabled(true);
   };
@@ -504,7 +517,7 @@ function InteractiveSound() {
       noteFilter.Q.value = 0.7;
 
       noteGain.gain.setValueAtTime(0, now);
-      noteGain.gain.linearRampToValueAtTime(0.06, now + 0.035);
+      noteGain.gain.linearRampToValueAtTime(0.12, now + 0.035);
       noteGain.gain.exponentialRampToValueAtTime(0.018, now + 0.22);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
 
@@ -915,7 +928,6 @@ export default function Home() {
           <a href="#about">About</a>
           <a href="#skills">Skills</a>
           <a href="#contact">Contact</a>
-          <InteractiveSound />
         </nav>
       </header>
 
@@ -946,6 +958,9 @@ export default function Home() {
             <Reveal className="heroMeta" delay={440}>
               <span>PYTHON / PYTORCH / OPENCV / NEXT.JS</span>
               <span>SCROLL ↓</span>
+            </Reveal>
+            <Reveal className="heroSoundReveal" delay={500}>
+              <InteractiveSound />
             </Reveal>
           </div>
         </div>
