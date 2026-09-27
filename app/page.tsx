@@ -705,13 +705,22 @@ export default function Home() {
         <div className="heroTitleWrap">
           <Reveal className="heroMicro"><span>RISHI KUMAR / DATA SCIENCE GRADUATE</span></Reveal>
           <h1 className="heroTitle">
-            <Reveal delay={80}><SplitLineText>RISHI</SplitLineText></Reveal>
-            <Reveal delay={160}><SplitLineText>KUMAR</SplitLineText></Reveal>
-            <Reveal delay={240}><SplitLineText className="accentText">AI / ML.</SplitLineText></Reveal>
+            <Reveal delay={80}><SplitLineText>BUILDING</SplitLineText></Reveal>
+            <Reveal delay={160}><SplitLineText>INTELLIGENT</SplitLineText></Reveal>
+            <Reveal delay={240}><SplitLineText className="accentText">SYSTEMS.</SplitLineText></Reveal>
           </h1>
-          <Reveal className="heroDescription" delay={330}>
-            <p>I build machine learning, computer vision and AI products where models become useful, visual, and shippable software.</p>
-          </Reveal>
+          <div className="heroUtility">
+            <Reveal className="heroDescription" delay={330}>
+              <p>I design machine learning, computer vision and data products where models become useful, understandable software.</p>
+            </Reveal>
+            <Reveal className="heroHeroCTA" delay={390}>
+              <a href="#works">EXPLORE SELECTED WORK <MoveUpRight size={15} strokeWidth={1.7} /></a>
+            </Reveal>
+            <Reveal className="heroMeta" delay={440}>
+              <span>PYTHON / PYTORCH / OPENCV / NEXT.JS</span>
+              <span>SCROLL ↓</span>
+            </Reveal>
+          </div>
         </div>
 
         <div className="heroSideNote">
@@ -821,6 +830,11 @@ export default function Home() {
         <div className="aboutGrid">
           <Reveal className="aboutLead">
             <p className="bigStatement">I like the part where an experiment stops being a notebook and starts behaving like a product.</p>
+            <div className="aboutSignal">
+              <span>CURRENT FOCUS</span>
+              <strong>AI PRODUCT ENGINEERING</strong>
+              <span>CHENNAI · INDIA</span>
+            </div>
           </Reveal>
           <Reveal className="aboutCopy" delay={120}>
             <p>At Cognibot, I worked across model output review, data quality, Python ETL automation, reporting, validation and documentation.</p>
@@ -831,6 +845,11 @@ export default function Home() {
               <div><strong>22%</strong><span>output reduction after optimization</span></div>
               <div><strong>7.30</strong><span>graduated CGPA / 10</span></div>
             </div>
+          </Reveal>
+          <Reveal className="careerRail" delay={220}>
+            <div><span>09.2025 — 10.2025</span><strong>COGNIBOT</strong><small>MACHINE LEARNING INTERN</small></div>
+            <div><span>02.2025</span><strong>NSIC</strong><small>AI MODEL DEVELOPMENT USING MLOPS</small></div>
+            <div><span>02.2026</span><strong>DELOITTE</strong><small>DATA ANALYTICS & VISUALISATION</small></div>
           </Reveal>
         </div>
       </section>
@@ -843,12 +862,19 @@ export default function Home() {
             <h2><SplitLineText>THINGS</SplitLineText><br /><em><SplitLineText>I BUILD WITH.</SplitLineText></em></h2>
           </div>
         </div>
+        <div className="skillsIntro">
+          <Reveal><p>Tools I use to turn models, data and ideas into working applications.</p></Reveal>
+          <Reveal delay={90}><span>18 CORE TOOLS / 04 DOMAINS</span></Reveal>
+        </div>
         <div className="skillWall">
           {skills.map((skill, index) => (
             <Reveal key={skill} delay={index * 22}>
               <span>{skill}</span>
             </Reveal>
           ))}
+        </div>
+        <div className="skillFooter">
+          <span>ML / AI</span><span>COMPUTER VISION</span><span>WEB / APIS</span><span>CLOUD / DEV</span>
         </div>
       </section>
 
@@ -863,6 +889,7 @@ export default function Home() {
 
         <div className="contactGrid">
           <Reveal className="contactBig">
+            <div className="contactPrompt">HAVE AN IDEA,<br /><em>PROJECT, OR ROLE?</em></div>
             <button onClick={copyEmail} className="emailButton" type="button">
               <span>{copied ? "EMAIL COPIED" : "s.rishikumar04@gmail.com"}</span>
               <Copy size={17} />
