@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
+  --mx: 50vw;
+  --my: 42vh;
   --bg: #050505;
   --panel: #090909;
   --panel-2: #0d0d0d;
@@ -112,6 +114,34 @@ html.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
   background:
     radial-gradient(circle at 50% 44%, transparent 0 16%, rgba(0,0,0,.14) 48%, rgba(0,0,0,.72) 100%),
     linear-gradient(180deg, rgba(0,0,0,.1) 0%, rgba(0,0,0,.04) 42%, rgba(0,0,0,.76) 100%);
+}
+.cursorField {
+  position: absolute;
+  left: var(--mx);
+  top: var(--my);
+  z-index: 4;
+  width: 330px;
+  height: 330px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255,78,31,.12) 0 7%, rgba(255,78,31,.055) 16%, transparent 54%);
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  opacity: .85;
+  transition: left .12s ease-out, top .12s ease-out;
+}
+.cursorField::before,
+.cursorField::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border: 1px solid rgba(255,74,27,.16);
+  border-radius: 50%;
+}
+.cursorField::after {
+  inset: 31%;
+  border-color: rgba(255,116,67,.11);
 }
 .globalTerrainVignette {
   position: absolute;
@@ -279,6 +309,7 @@ html.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 
 .section {
   position: relative;
+  backdrop-filter: blur(1px);
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr);
   gap: 54px;
@@ -303,6 +334,16 @@ html.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
   color: var(--accent);
   font-size: 10px;
   letter-spacing: .15em;
+}
+.section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8.5vw;
+  right: 8.5vw;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,91,47,.11), transparent);
+  pointer-events: none;
 }
 .section h2, .contactSection h2 {
   margin: 0;
@@ -686,4 +727,12 @@ html.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 
 @media (max-width: 620px) {
   .globalTerrain .terrainSun { left: 60%; top: 56%; width: 170px; opacity: .6; }
+}
+
+@media (max-width: 620px) {
+  .cursorField {
+    width: 240px;
+    height: 240px;
+    opacity: .55;
+  }
 }
