@@ -1005,7 +1005,7 @@ html,body{overscroll-behavior-y:none}
   z-index:2;
   pointer-events:none;
   overflow:hidden;
-  opacity:.88;
+  opacity:.76;
   isolation:isolate;
 }
 .solarStars{
@@ -1030,7 +1030,7 @@ html,body{overscroll-behavior-y:none}
   top:46%;
   width:min(92vmin,1100px);
   aspect-ratio:1;
-  transform:translate(-50%,-50%) scale(calc(1.58 - var(--solar-progress)*1.04)) rotate(calc(var(--solar-progress)*-4deg));
+  transform:translate(-50%,-50%) scale(calc(1.56 - var(--solar-progress)*.76)) rotate(calc(var(--solar-progress)*-3deg));
   transform-origin:center;
   transition:transform .12s linear;
   will-change:transform;
@@ -1044,29 +1044,70 @@ html,body{overscroll-behavior-y:none}
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:
-    radial-gradient(circle at 37% 32%,#ffd4bc 0 6%,#ff9a73 17%,#f04420 35%,#ce1c0d 55%,#780600 73%,#3b0200 100%);
+    radial-gradient(circle at 36% 30%,#fff0df 0 4%,#ffc2a7 11%,#ff7e57 24%,#ed3d1d 42%,#bf180b 63%,#5b0400 82%,#250100 100%);
   box-shadow:
-    0 0 0 1px rgba(113,10,3,.22),
-    0 0 44px rgba(236,38,14,.35),
-    0 0 110px rgba(236,38,14,.22),
-    0 0 210px rgba(236,38,14,.12);
-  animation:solarSunPulse 6s ease-in-out infinite;
+    0 0 0 1px rgba(113,10,3,.18),
+    0 0 28px rgba(255,78,39,.22),
+    0 0 78px rgba(241,52,20,.24),
+    0 0 160px rgba(225,37,13,.18),
+    0 0 270px rgba(214,31,12,.10);
+  animation:solarSunPulse 9s ease-in-out infinite;
 }
 .solarSun::before,
 .solarSun::after{
   content:"";
   position:absolute;
-  inset:-9%;
   border-radius:50%;
-  border:1px solid rgba(220,34,13,.16);
+  pointer-events:none;
 }
-.solarSun::after{inset:-17%;opacity:.7}
+.solarSun::before{
+  inset:-12%;
+  background:radial-gradient(circle,rgba(255,90,45,.18) 0%,rgba(241,52,20,.09) 38%,transparent 72%);
+  filter:blur(19px);
+  animation:solarHalo 9s ease-in-out infinite;
+}
+.solarSun::after{
+  inset:-22%;
+  border:1px solid rgba(220,34,13,.09);
+  box-shadow:0 0 70px rgba(227,44,17,.10),0 0 150px rgba(227,44,17,.05);
+  filter:blur(7px);
+}
 .solarSun span{
   position:absolute;
-  inset:18%;
+  inset:13%;
   border-radius:50%;
-  background:radial-gradient(circle at 42% 36%,rgba(255,236,220,.22),transparent 38%);
-  filter:blur(8px);
+  background:
+    radial-gradient(circle at 45% 38%,rgba(255,248,236,.28),transparent 32%),
+    radial-gradient(circle at 68% 62%,rgba(255,120,82,.12),transparent 38%);
+  filter:blur(9px);
+  animation:solarCoreFlicker 7s ease-in-out infinite;
+}
+.solarHeat{
+  position:absolute;
+  inset:-7%;
+  display:block;
+  border-radius:50%;
+  opacity:.34;
+  background:
+    radial-gradient(ellipse at 38% 50%,rgba(255,150,111,.16),transparent 46%),
+    radial-gradient(ellipse at 63% 44%,rgba(255,72,35,.10),transparent 54%);
+  filter:url(#solarHeat) blur(3px);
+  mix-blend-mode:screen;
+  transform:scale(1.02);
+  animation:solarHeatWave 7.5s ease-in-out infinite;
+}
+@keyframes solarHalo{
+  0%,100%{transform:scale(.96);opacity:.72}
+  50%{transform:scale(1.045);opacity:1}
+}
+@keyframes solarCoreFlicker{
+  0%,100%{transform:scale(.98);opacity:.7}
+  42%{transform:scale(1.03);opacity:1}
+  68%{transform:scale(1);opacity:.78}
+}
+@keyframes solarHeatWave{
+  0%,100%{transform:scale(1.01) skewX(0deg);opacity:.25}
+  50%{transform:scale(1.045) skewX(-1.5deg);opacity:.42}
 }
 @keyframes solarSunPulse{
   0%,100%{transform:translate(-50%,-50%) scale(.98)}
@@ -1134,9 +1175,10 @@ html,body{overscroll-behavior-y:none}
 }
 .solarLabelSun{left:50%;top:30%;transform:translateX(25%);}
 .solarLabelSystem{right:4%;bottom:9%}
-.heroStage,.sectionShell{background:rgba(238,234,226,.62)}
-.skillsSection{background:rgba(228,224,215,.66)}
-.footer{background:rgba(238,234,226,.78)}
+.heroStage,.sectionShell{background:rgba(238,234,226,.69)}
+.skillsSection{background:rgba(228,224,215,.72)}
+.footer{background:rgba(238,234,226,.82)}
+.heroTitleWrap,.heroTopline,.heroFooter,.heroUtility{position:relative;z-index:4}
 
 @media(max-width:950px){
   .solarSystem{opacity:.7}
@@ -1144,7 +1186,7 @@ html,body{overscroll-behavior-y:none}
   .solarOrbit5{--orbit-size:112%}
 }
 @media(max-width:640px){
-  .solarSystem{opacity:.58}
+  .solarSystem{opacity:.5}
   .solarScene{width:122vmin;top:42%}
   .solarSun{width:31%}
   .solarLabel{font-size:6px}
