@@ -1,805 +1,376 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, Copy, Github, Linkedin, Mail, MoveUpRight } from "lucide-react";
 import Lenis from "lenis";
-import {
-  ArrowDown,
-  ArrowUpRight,
-  BrainCircuit,
-  BriefcaseBusiness,
-  Code2,
-  Database,
-  ExternalLink,
-  Mail,
-  MapPin,
-  Sparkles,
-} from "lucide-react";
 
 type Project = {
+  number: string;
   title: string;
-  type: string;
-  description: string;
-  stack: string[];
+  category: string;
+  tech: string;
+  year: string;
   href: string;
   live?: string;
-  featured?: boolean;
+  tone: "orange" | "cyan" | "lime" | "violet" | "blue" | "pink";
+  description: string;
 };
 
 const projects: Project[] = [
   {
+    number: "01",
     title: "SketchMaster",
-    type: "AI • COMPUTER VISION • FULL STACK",
-    description:
-      "An end-to-end sketch-to-code system that interprets handwritten UI sketches, infers interface structure, and generates responsive code with an interactive editor and live preview.",
-    stack: ["Python", "OpenCV", "PyTorch", "FastAPI", "Next.js", "TypeScript"],
+    category: "AI / COMPUTER VISION",
+    tech: "PYTHON · PYTORCH · FASTAPI · NEXT.JS",
+    year: "2026",
     href: "https://github.com/Rixshi04/sketch2code-AI-based-sketch-interpretation-for-human-centric-html-css-code-generation",
-    featured: true,
+    tone: "orange",
+    description:
+      "Hand-drawn interface sketches transformed into responsive UI code, with component detection, layout inference, live preview and an interactive editor.",
   },
   {
-    title: "DeepFake Video & Audio Detector",
-    type: "DEEP LEARNING • MEDIA FORENSICS",
-    description:
-      "A multimodal detection pipeline combining CNN visual features, LSTM temporal modeling, and audio spectrogram analysis to classify potentially manipulated media.",
-    stack: ["Python", "CNN", "LSTM", "PyTorch", "OpenCV", "Librosa", "Flask"],
+    number: "02",
+    title: "DeepFake Detector",
+    category: "DEEP LEARNING / MEDIA",
+    tech: "CNN · LSTM · PYTORCH · OPENCV",
+    year: "2026",
     href: "https://github.com/Rixshi04/Deep-Fake-video-audio-detector-using-Artificial-intelligence-and-Machine-Learning-",
     live: "https://deepfake-video-detector.vercel.app",
-    featured: true,
+    tone: "violet",
+    description:
+      "A multimodal pipeline that combines visual CNN features, temporal LSTM modeling and audio spectrogram analysis for manipulated-media detection.",
   },
   {
+    number: "03",
     title: "Carbon Footprint Tracker",
-    type: "DATA • ANALYTICS • SUSTAINABILITY",
-    description:
-      "A tracking and analytics concept for quantifying emissions, monitoring progress, and surfacing data-driven reduction insights through dashboards and reporting.",
-    stack: ["JavaScript", "Data Analytics", "Dashboards"],
+    category: "DATA / SUSTAINABILITY",
+    tech: "JAVASCRIPT · ANALYTICS · DASHBOARDS",
+    year: "2026",
     href: "https://github.com/Rixshi04/carbon-foot-print-tracker",
+    tone: "lime",
+    description:
+      "A practical analytics concept for tracking emissions, measuring progress and turning activity data into understandable sustainability insights.",
   },
   {
+    number: "04",
     title: "Car Price Prediction",
-    type: "MACHINE LEARNING • REGRESSION",
-    description:
-      "A supervised learning workflow covering preprocessing, exploratory analysis, feature encoding, model training, and evaluation for car price prediction.",
-    stack: ["Python", "Pandas", "NumPy", "Scikit-learn", "Matplotlib"],
+    category: "MACHINE LEARNING",
+    tech: "PYTHON · PANDAS · SCIKIT-LEARN",
+    year: "2025",
     href: "https://github.com/Rixshi04/Car-Price-Prediction-with-Machine-Learning",
+    tone: "blue",
+    description:
+      "An end-to-end regression workflow covering preprocessing, exploratory analysis, feature encoding, training and model evaluation.",
   },
   {
-    title: "Iris Flower Classification",
-    type: "MACHINE LEARNING • CLASSIFICATION",
-    description:
-      "A compact classification project using standardized features and K-Nearest Neighbors, with evaluation through accuracy, confusion matrix, precision, recall, and F1-score.",
-    stack: ["Python", "Pandas", "Scikit-learn", "Joblib"],
+    number: "05",
+    title: "Iris Classification",
+    category: "MACHINE LEARNING",
+    tech: "PYTHON · KNN · SCIKIT-LEARN",
+    year: "2025",
     href: "https://github.com/Rixshi04/Iris-Flower-Classification-with-Machine-Learning",
-  },
-  {
-    title: "Unemployment Analysis",
-    type: "DATA ANALYSIS • STATISTICS",
+    tone: "cyan",
     description:
-      "An analytical workflow exploring unemployment trends with preprocessing, EDA, statistical testing, linear regression, and forecasting-oriented analysis.",
-    stack: ["Python", "Pandas", "SciPy", "Scikit-learn", "Matplotlib"],
+      "A compact classification project with standardized features and evaluation using accuracy, confusion matrix, precision, recall and F1-score.",
+  },
+  {
+    number: "06",
+    title: "Unemployment Analysis",
+    category: "DATA / STATISTICS",
+    tech: "PYTHON · PANDAS · SCIPY",
+    year: "2025",
     href: "https://github.com/Rixshi04/Unemployment-Analysis-with-Python",
+    tone: "pink",
+    description:
+      "Exploration of unemployment trends using data preparation, EDA, statistical testing, linear regression and forecasting-oriented analysis.",
   },
 ];
 
-const skillGroups = [
-  { label: "Programming", values: ["Python", "Java", "SQL"] },
-  {
-    label: "Machine Learning & AI",
-    values: ["Machine Learning", "Deep Learning", "CNN", "LSTM", "YOLO", "PyTorch", "TensorFlow", "Feature Engineering"],
-  },
-  {
-    label: "Computer Vision & Data",
-    values: ["OpenCV", "Image Processing", "Pandas", "NumPy", "Matplotlib", "Jupyter", "Librosa"],
-  },
-  {
-    label: "Engineering",
-    values: ["FastAPI", "Flask", "REST APIs", "Git", "GitHub", "Docker", "AWS", "VS Code"],
-  },
-  {
-    label: "Web & Database",
-    values: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Prisma", "SQLite", "MySQL"],
-  },
-  {
-    label: "Analytics",
-    values: ["Excel", "Tableau", "Power BI", "Data Cleaning", "Data Analysis"],
-  },
+const skills = [
+  "Python",
+  "Java",
+  "SQL",
+  "PyTorch",
+  "TensorFlow",
+  "OpenCV",
+  "YOLO",
+  "Pandas",
+  "NumPy",
+  "FastAPI",
+  "Flask",
+  "Next.js",
+  "React",
+  "TypeScript",
+  "Tailwind CSS",
+  "Docker",
+  "AWS",
+  "Git",
 ];
 
-function WireTerrain() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const gl = canvas.getContext("webgl2", {
-      antialias: true,
-      alpha: false,
-      powerPreference: "high-performance",
-    });
-
-    if (!gl) return;
-
-    const vertexShaderSource = [
-      "#version 300 es",
-      "      precision highp float;",
-      "",
-      "      layout(location = 0) in vec3 aPosition;",
-      "",
-      "      uniform float uTime;",
-      "      uniform float uScroll;",
-      "      uniform float uDepth;",
-      "      uniform float uCameraHeight;",
-      "      uniform float uPitch;",
-      "      uniform float uYaw;",
-      "      uniform float uRoll;",
-      "      uniform vec2 uResolution;",
-      "",
-      "      out float vDepth;",
-      "      out float vHeight;",
-      "",
-      "      float hash(vec2 p) {",
-      "        p = fract(p * vec2(123.34, 345.45));",
-      "        p += dot(p, p + 34.345);",
-      "        return fract(p.x * p.y);",
-      "      }",
-      "",
-      "      float noise(vec2 p) {",
-      "        vec2 i = floor(p);",
-      "        vec2 f = fract(p);",
-      "        f = f * f * (3.0 - 2.0 * f);",
-      "",
-      "        float a = hash(i);",
-      "        float b = hash(i + vec2(1.0, 0.0));",
-      "        float c = hash(i + vec2(0.0, 1.0));",
-      "        float d = hash(i + vec2(1.0, 1.0));",
-      "",
-      "        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);",
-      "      }",
-      "",
-      "      float terrainHeight(float x, float z) {",
-      "        float valley = smoothstep(0.0, 3.8, abs(x));",
-      "        float n1 = noise(vec2(x * 0.75, z * 0.075));",
-      "        float n2 = noise(vec2(x * 1.6 + 19.0, z * 0.16));",
-      "        float n3 = sin(z * 0.055 + x * 0.7) * 0.28;",
-      "        float ridge = pow(valley, 1.25) * (1.7 + n1 * 4.8 + n2 * 2.4 + n3);",
-      "        float floorShape = (1.0 - valley) * (0.04 + noise(vec2(x * 0.35, z * 0.045)) * 0.07);",
-      "        return ridge + floorShape;",
-      "      }",
-      "",
-      "      mat3 rotX(float a) {",
-      "        float s = sin(a), c = cos(a);",
-      "        return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c);",
-      "      }",
-      "      mat3 rotY(float a) {",
-      "        float s = sin(a), c = cos(a);",
-      "        return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c);",
-      "      }",
-      "      mat3 rotZ(float a) {",
-      "        float s = sin(a), c = cos(a);",
-      "        return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0);",
-      "      }",
-      "",
-      "      void main() {",
-      "        float zWrapped = mod(aPosition.z + uScroll, uDepth);",
-      "        float z = max(0.3, zWrapped);",
-      "        float x = aPosition.x;",
-      "        float y = terrainHeight(x, z);",
-      "",
-      "        vec3 pos = vec3(x, y, z);",
-      "        pos.y -= uCameraHeight;",
-      "",
-      "        mat3 camera = rotZ(uRoll) * rotX(uPitch) * rotY(uYaw);",
-      "        pos = camera * pos;",
-      "",
-      "        float fov = 1.25;",
-      "        float depth = max(0.18, pos.z);",
-      "        float aspect = uResolution.x / max(1.0, uResolution.y);",
-      "",
-      "        float nx = (pos.x / (depth * fov)) / aspect;",
-      "        float ny = (pos.y / (depth * fov));",
-      "",
-      "        gl_Position = vec4(nx, ny, 0.5 + depth * 0.002, 1.0);",
-      "",
-      "        vDepth = depth;",
-      "        vHeight = y;",
-      "      }",
-      "    "
-    ].join("\n");
-
-    const fragmentShaderSource = [
-      "#version 300 es",
-      "      precision highp float;",
-      "",
-      "      uniform vec3 uColor;",
-      "      uniform bool uFill;",
-      "      uniform float uDepth;",
-      "",
-      "      in float vDepth;",
-      "      out vec4 outColor;",
-      "",
-      "      void main() {",
-      "        float fade = 1.0 - smoothstep(uDepth * 0.25, uDepth * 0.98, vDepth);
-        float travel = 0.55 + 0.45 * sin(vDepth * 0.16 - uTime * 2.15);
-        float edgePulse = 0.78 + 0.22 * travel;",
-      "        if (uFill) {",
-      "          outColor = vec4(0.0, 0.0, 0.0, 1.0);",
-      "        } else {",
-      "          float glow = 0.45 + fade * 0.9;",
-      "          outColor = vec4(uColor * glow, 1.0);",
-      "        }",
-      "      }",
-      "    "
-    ].join("\n");
-
-    const createShader = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) throw new Error("Unable to create shader");
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(shader) || "Shader compilation failed");
-      }
-      return shader;
-    };
-
-    const program = gl.createProgram();
-    if (!program) throw new Error("Unable to create WebGL program");
-
-    const vs = createShader(gl.VERTEX_SHADER, vertexShaderSource);
-    const fs = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error(gl.getProgramInfoLog(program) || "Program linking failed");
-    }
-
-    const gridX = 58;
-    const gridZ = 156;
-    const width = 21;
-    const depth = 112;
-
-    const positions: number[] = [];
-    for (let z = 0; z < gridZ; z += 1) {
-      const tz = z / (gridZ - 1);
-      const worldZ = 0.6 + tz * depth;
-      for (let x = 0; x < gridX; x += 1) {
-        const tx = x / (gridX - 1);
-        const worldX = (tx - 0.5) * width;
-        positions.push(worldX, 0, worldZ);
-      }
-    }
-
-    const vao = gl.createVertexArray();
-    const positionBuffer = gl.createBuffer();
-    if (!vao || !positionBuffer) throw new Error("Unable to create geometry");
-
-    gl.bindVertexArray(vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-    const indexData: number[] = [];
-    for (let z = 0; z < gridZ - 1; z += 1) {
-      for (let x = 0; x < gridX - 1; x += 1) {
-        const a = z * gridX + x;
-        const b = a + 1;
-        const c = a + gridX;
-        const d = c + 1;
-        indexData.push(a, c, b, b, c, d);
-      }
-    }
-
-    const indexBuffer = gl.createBuffer();
-    if (!indexBuffer) throw new Error("Unable to create index buffer");
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indexData), gl.STATIC_DRAW);
-
-    const lineData: number[] = [];
-    for (let z = 0; z < gridZ; z += 1) {
-      for (let x = 0; x < gridX - 1; x += 1) {
-        const a = z * gridX + x;
-        lineData.push(a, a + 1);
-      }
-    }
-    for (let x = 0; x < gridX; x += 1) {
-      for (let z = 0; z < gridZ - 1; z += 1) {
-        const a = z * gridX + x;
-        lineData.push(a, a + gridX);
-      }
-    }
-
-    const lineIndexBuffer = gl.createBuffer();
-    if (!lineIndexBuffer) throw new Error("Unable to create line index buffer");
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(lineData), gl.STATIC_DRAW);
-
-    const uTime = gl.getUniformLocation(program, "uTime");
-    const uScroll = gl.getUniformLocation(program, "uScroll");
-    const uDepth = gl.getUniformLocation(program, "uDepth");
-    const uCameraHeight = gl.getUniformLocation(program, "uCameraHeight");
-    const uPitch = gl.getUniformLocation(program, "uPitch");
-    const uYaw = gl.getUniformLocation(program, "uYaw");
-    const uRoll = gl.getUniformLocation(program, "uRoll");
-    const uResolution = gl.getUniformLocation(program, "uResolution");
-    const uColor = gl.getUniformLocation(program, "uColor");
-    const uFill = gl.getUniformLocation(program, "uFill");
-
-    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
-    const scrollMotion = { value: 0, target: 0 };
-    const clickPulse = { value: 0 };
-    let raf = 0;
-    let last = performance.now();
-    let scroll = 0;
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-
-    const pointerMove = (event: PointerEvent) => {
-      pointer.tx = (event.clientX / window.innerWidth - 0.5);
-      pointer.ty = (event.clientY / window.innerHeight - 0.5);
-    };
-
-    const onScroll = () => {
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const normalized = window.scrollY / max;
-      scrollMotion.target = normalized;
-    };
-
-    const onClick = () => {
-      clickPulse.value = 1;
-    };
-
-    const draw = (now: number) => {
-      const dt = Math.min(0.04, (now - last) / 1000);
-      last = now;
-
-      pointer.x += (pointer.tx - pointer.x) * Math.min(1, dt * 5.5);
-      pointer.y += (pointer.ty - pointer.y) * Math.min(1, dt * 5.5);
-      scrollMotion.value += (scrollMotion.target - scrollMotion.value) * Math.min(1, dt * 3.5);
-      clickPulse.value *= Math.pow(0.0005, dt);
-
-      const idleSway = Math.sin(now * 0.00025) * 0.045;
-      const scrollSpeed = 14 + Math.abs(pointer.y) * 6 + scrollMotion.value * 8 + clickPulse.value * 14;
-      scroll = (scroll + dt * scrollSpeed) % depth;
-
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.enable(gl.DEPTH_TEST);
-      gl.depthFunc(gl.LESS);
-      gl.enable(gl.CULL_FACE);
-      gl.cullFace(gl.BACK);
-      gl.enable(gl.POLYGON_OFFSET_FILL);
-      gl.polygonOffset(1, 1);
-
-      gl.useProgram(program);
-      gl.bindVertexArray(vao);
-
-      gl.uniform1f(uTime, now * 0.001);
-      gl.uniform1f(uScroll, scroll);
-      gl.uniform1f(uDepth, depth);
-      gl.uniform1f(uCameraHeight, 7.2);
-      gl.uniform1f(uPitch, -0.18 + pointer.y * 0.12 - scrollMotion.value * 0.045);
-      gl.uniform1f(uYaw, pointer.x * -0.18 + idleSway + Math.sin(now * 0.00042) * clickPulse.value * 0.035);
-      gl.uniform1f(uRoll, pointer.x * 0.095 + pointer.y * pointer.x * 0.03);
-      gl.uniform2f(uResolution, canvas.clientWidth, canvas.clientHeight);
-
-      // Terrain body pass: background-colored triangles write depth,
-      // creating the hidden-line/occlusion behavior of the original visual.
-      gl.uniform3f(uColor, 0.0, 0.0, 0.0);
-      gl.uniform1i(uFill, 1);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      gl.drawElements(gl.TRIANGLES, indexData.length, gl.UNSIGNED_INT, 0);
-      gl.disable(gl.POLYGON_OFFSET_FILL);
-
-      // Wire pass.
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.uniform3f(uColor, 0.694, 0.169, 0.0);
-      gl.uniform1i(uFill, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lineIndexBuffer);
-      gl.lineWidth(1);
-      gl.drawElements(gl.LINES, lineData.length, gl.UNSIGNED_INT, 0);
-
-      gl.disable(gl.BLEND);
-
-      raf = requestAnimationFrame(draw);
-    };
-
-    resize();
-    raf = requestAnimationFrame(draw);
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", pointerMove);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("click", onClick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", pointerMove);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("click", onClick);
-      gl.deleteBuffer(positionBuffer);
-      gl.deleteBuffer(indexBuffer);
-      gl.deleteBuffer(lineIndexBuffer);
-      gl.deleteVertexArray(vao);
-      gl.deleteProgram(program);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="terrainCanvas" aria-hidden="true" />;
+function ProjectVisual({ project }: { project: Project }) {
+  return (
+    <div className={`projectVisual projectVisual--${project.tone}`} aria-hidden="true">
+      <div className="visualGlow" />
+      <div className="visualGrid" />
+      <div className="visualOrb" />
+      <div className="visualPlane" />
+      <div className="visualLabel">{project.number} / {project.category}</div>
+    </div>
+  );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="sectionLabel">{children}</div>;
+function Marquee() {
+  return (
+    <div className="marquee" aria-hidden="true">
+      <div className="marqueeTrack">
+        <span>AI ENGINEERING</span><i>•</i><span>MACHINE LEARNING</span><i>•</i>
+        <span>COMPUTER VISION</span><i>•</i><span>DATA</span><i>•</i>
+        <span>AI ENGINEERING</span><i>•</i><span>MACHINE LEARNING</span><i>•</i>
+        <span>COMPUTER VISION</span><i>•</i><span>DATA</span><i>•</i>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const move = (event: PointerEvent) => {
-      root.style.setProperty("--mx", event.clientX + "px");
-      root.style.setProperty("--my", event.clientY + "px");
-    };
-    window.addEventListener("pointermove", move);
-    return () => window.removeEventListener("pointermove", move);
-  }, []);
+  const [activeProject, setActiveProject] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const lenis = new Lenis({
       autoRaf: true,
       anchors: true,
-      lerp: 0.085,
+      lerp: 0.075,
       smoothWheel: true,
       wheelMultiplier: 0.9,
       syncTouch: true,
       respectReducedMotion: true,
     });
 
-    return () => {
-      lenis.destroy();
-    };
+    return () => lenis.destroy();
   }, []);
 
-  return (
-    <main>
-      <div className="globalTerrain">
-        <WireTerrain />
-        <div className="terrainSun" aria-hidden="true" />
-        <div className="globalTerrainVignette" aria-hidden="true" />
-        <div className="cursorField" aria-hidden="true" />
-      </div>
+  const selected = useMemo(() => projects[activeProject], [activeProject]);
 
-      <nav className="siteNav">
-        <a className="brand" href="#top" aria-label="Rishi Kumar home">
-          RK<span>.</span>
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("s.rishikumar04@gmail.com");
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      window.location.href = "mailto:s.rishikumar04@gmail.com";
+    }
+  };
+
+  return (
+    <main className="site">
+      <header className="topbar">
+        <a href="#top" className="wordmark">
+          RISHI KUMAR<span>.</span>
         </a>
 
-        <div className="navLinks">
+        <p className="descriptor">
+          Machine Learning Engineer with a background in
+          <br />
+          computer vision, data and AI application development.
+        </p>
+
+        <nav className="topnav">
+          <a href="#works">Selected Works</a>
           <a href="#about">About</a>
-          <a href="#experience">Experience</a>
-          <a href="#projects">Projects</a>
-          <a href="#skills">Skills</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </header>
+
+      <section id="top" className="heroStage">
+        <div className="heroTopline">
+          <span>CHENNAI, INDIA</span>
+          <span>AVAILABLE FOR OPPORTUNITIES</span>
+          <span>PORTFOLIO — 2026</span>
         </div>
 
-        <a className="navCta" href="mailto:s.rishikumar04@gmail.com">
-          Let&apos;s talk <ArrowUpRight size={15} />
-        </a>
-      </nav>
-
-      <section id="top" className="hero">
-        <div className="heroOverlay" />
-        <div className="heroNoise" />
-
-        <div className="heroInner">
-          <div className="statusPill">
-            <span className="statusDot" />
-            OPEN TO OPPORTUNITIES
-          </div>
-
-          <p className="eyebrow">MACHINE LEARNING ENGINEER · AI ENGINEER · COMPUTER VISION</p>
-
-          <h1>
-            Building
+        <div className="heroTitleWrap">
+          <p className="heroMicro">AI · ML · COMPUTER VISION · SOFTWARE</p>
+          <h1 className="heroTitle">
+            RISHI
             <br />
-            <span>intelligent systems</span>
-            <br />
-            <em>from idea to impact.</em>
+            KUMAR
           </h1>
 
-          <p className="heroCopy">
-            I&apos;m Rishi Kumar, a Computer Science &amp; Engineering (Data Science) graduate focused on
-            machine learning, computer vision, data-driven applications, and practical software engineering.
+          <div className="heroAside">
+            <p>
+              I build intelligent systems that move from data and model
+              experiments into usable products.
+            </p>
+            <a href="#works">
+              SCROLL TO SELECTED WORKS <ArrowUpRight size={15} />
+            </a>
+          </div>
+        </div>
+
+        <div className="heroFooter">
+          <span>OPEN TO WORK</span>
+          <span>PYTHON / PYTORCH / NEXT.JS</span>
+          <span>↘ SCROLL</span>
+        </div>
+      </section>
+
+      <Marquee />
+
+      <section id="works" className="worksSection sectionShell">
+        <div className="sectionHead">
+          <span className="sectionNumber">01</span>
+          <div>
+            <p className="eyebrow">SELECTED WORKS</p>
+            <h2>Projects that put<br />the <em>model</em> to work.</h2>
+          </div>
+          <p className="sectionMeta">
+            06 projects
+            <br />
+            machine learning / data / interfaces
           </p>
-
-          <div className="heroActions">
-            <a className="button buttonPrimary" href="#projects">
-              Explore projects <ArrowUpRight size={17} />
-            </a>
-            <a className="button buttonGhost" href="mailto:s.rishikumar04@gmail.com">
-              <Mail size={16} /> Get in touch
-            </a>
-          </div>
-
-          <div className="heroMeta">
-            <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              <span className="socialMark">GH</span> GitHub
-            </a>
-            <a href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">
-              <span className="socialMark">in</span> LinkedIn
-            </a>
-            <span>
-              <MapPin size={16} /> Chennai, India
-            </span>
-          </div>
         </div>
 
-        <a className="scrollCue" href="#about">
-          <span>SCROLL TO EXPLORE</span>
-          <ArrowDown size={15} />
-        </a>
-      </section>
-
-      <section id="about" className="section splitSection">
-        <SectionLabel>01 / ABOUT</SectionLabel>
-        <div className="sectionBody">
-          <div className="introGrid">
-            <div>
-              <p className="kicker">BUILDING ACROSS THE STACK</p>
-              <h2>
-                Data in.
-                <br />
-                Models up.
-                <br />
-                <span>Products out.</span>
-              </h2>
-            </div>
-
-            <div className="sectionText">
-              <p>
-                I enjoy moving from a messy problem to a working system: preparing the data, evaluating the
-                model, exposing the logic through an API, and shaping the product around what users actually need.
-              </p>
-              <p>
-                My work spans ML, computer vision, backend APIs, modern web development, testing, analytics,
-                documentation, and cloud fundamentals.
-              </p>
-            </div>
-          </div>
-
-          <div className="metricStrip">
-            <div>
-              <strong>20/20</strong>
-              <span>SketchMaster test cases validated</span>
-            </div>
-            <div>
-              <strong>12.25ms</strong>
-              <span>Average processing time on final pipeline</span>
-            </div>
-            <div>
-              <strong>22%</strong>
-              <span>Approx. reduction in generated output after optimization</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="experience" className="section splitSection">
-        <SectionLabel>02 / EXPERIENCE</SectionLabel>
-        <div className="sectionBody">
-          <div className="timelineItem">
-            <div className="timelineRail">
-              <span />
-            </div>
-            <div className="timelineMain">
-              <div className="timelineTop">
-                <div>
-                  <p className="kicker">SEP 2025 — OCT 2025</p>
-                  <h3>Machine Learning Intern</h3>
-                  <p className="muted">Cognibot · Chennai</p>
-                </div>
-                <BriefcaseBusiness size={22} />
-              </div>
-
-              <div className="experienceGrid">
-                <p>
-                  Reviewed machine learning model outputs and generated structured reports, identifying data
-                  inconsistencies, anomalies, and quality issues for investigation.
-                </p>
-                <p>
-                  Assisted with data preparation, validation, and preprocessing; built Python ETL pipelines and
-                  automation scripts for recurring ingestion, transformation, and reporting workflows.
-                </p>
-                <p>
-                  Supported dashboard preparation, model-output testing, documentation, and collaboration with
-                  senior team members on issue resolution.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section splitSection credentialsSection">
-        <SectionLabel>03 / EDUCATION &amp; CREDENTIALS</SectionLabel>
-        <div className="sectionBody">
-          <div className="credentialsGrid">
-            <div className="credentialBlock">
-              <p className="kicker">EDUCATION</p>
-              <h3>Sathyabama Institute of Science and Technology</h3>
-              <p className="credentialTitle">B.E. Computer Science and Engineering (Data Science)</p>
-              <div className="credentialMeta">
-                <span>2022 — 2026</span>
-                <span>CGPA 7.30 / 10.0</span>
-                <span>Chennai</span>
-              </div>
-            </div>
-
-            <div className="credentialBlock">
-              <p className="kicker">CERTIFICATIONS</p>
-              <div className="certList">
-                <div className="certItem">
-                  <div>
-                    <strong>NSIC — AI Model Development using MLOps</strong>
-                    <span>February 2025</span>
-                  </div>
-                  <Sparkles size={17} />
-                </div>
-                <div className="certItem">
-                  <div>
-                    <strong>Deloitte — Data Analytics &amp; Visualisation Tools</strong>
-                    <span>February 2026</span>
-                  </div>
-                  <Database size={17} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="projects" className="section splitSection projectsSection">
-        <SectionLabel>04 / SELECTED WORK</SectionLabel>
-        <div className="sectionBody">
-          <div className="projectsIntro">
-            <div>
-              <p className="kicker">PROJECTS</p>
-              <h2>
-                Serious experiments.
-                <br />
-                <span>Useful outcomes.</span>
-              </h2>
-            </div>
-            <a className="textLink" href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              View GitHub <ExternalLink size={15} />
-            </a>
-          </div>
-
-          <div className="projectGrid">
-            {projects.map((project, index) => (
-              <article className={project.featured ? "projectCard featured" : "projectCard"} key={project.title}>
-                <div className="projectNumber">{String(index + 1).padStart(2, "0")}</div>
-                <div className="projectIcon">
-                  {index === 0 ? <Sparkles size={21} /> : index === 1 ? <BrainCircuit size={21} /> : <Code2 size={21} />}
-                </div>
-
-                <div className="projectType">{project.type}</div>
-                <h3>{project.title}</h3>
-                <p>{project.description}</p>
-
-                <div className="tagRow">
-                  {project.stack.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-
-                <div className="projectFooter">
-                  <a href={project.href} target="_blank" rel="noreferrer">
-                    Repository <ArrowUpRight size={15} />
+        <div className="workIndex">
+          <div className="workList">
+            {projects.map((project, index) => {
+              const isActive = activeProject === index;
+              return (
+                <div
+                  key={project.title}
+                  className={`workRow ${isActive ? "isActive" : ""}`}
+                  onMouseEnter={() => setActiveProject(index)}
+                  onFocus={() => setActiveProject(index)}
+                >
+                  <a href={project.href} target="_blank" rel="noreferrer" className="workLink">
+                    <span className="workNo">{project.number}</span>
+                    <span className="workTitle">{project.title}</span>
+                    <span className="workType">{project.category}</span>
+                    <span className="workYear">{project.year}</span>
+                    <MoveUpRight size={16} className="workArrow" />
                   </a>
-                  {project.live ? (
-                    <a href={project.live} target="_blank" rel="noreferrer">
-                      Live <ExternalLink size={14} />
-                    </a>
-                  ) : null}
                 </div>
-              </article>
-            ))}
+              );
+            })}
           </div>
+
+          <aside className="selectedVisual">
+            <div className="selectedFrame">
+              <ProjectVisual project={selected} />
+              <div className="selectedInfo">
+                <div>
+                  <span>{selected.category}</span>
+                  <strong>{selected.title}</strong>
+                </div>
+                <span>{selected.year}</span>
+              </div>
+            </div>
+            <p className="selectedDescription">{selected.description}</p>
+            <div className="selectedLinks">
+              <a href={selected.href} target="_blank" rel="noreferrer">
+                GitHub <Github size={14} />
+              </a>
+              {selected.live && (
+                <a href={selected.live} target="_blank" rel="noreferrer">
+                  Live site <ArrowUpRight size={14} />
+                </a>
+              )}
+            </div>
+          </aside>
         </div>
       </section>
 
-      <section id="skills" className="section splitSection">
-        <SectionLabel>05 / TOOLKIT</SectionLabel>
-        <div className="sectionBody">
-          <div className="projectsIntro">
-            <div>
-              <p className="kicker">TECHNICAL SKILLS</p>
-              <h2>
-                Tools for
-                <br />
-                <span>shipping.</span>
-              </h2>
-            </div>
-            <p className="sectionLead">
-              A practical stack across programming, ML, computer vision, APIs, web apps, data, and analytics.
+      <section id="about" className="aboutSection sectionShell">
+        <div className="sectionHead">
+          <span className="sectionNumber">02</span>
+          <div>
+            <p className="eyebrow">ABOUT</p>
+            <h2>A developer<br />who likes <em>systems.</em></h2>
+          </div>
+          <p className="sectionMeta">
+            CHENNAI, INDIA
+            <br />
+            DATA SCIENCE GRADUATE
+          </p>
+        </div>
+
+        <div className="aboutGrid">
+          <div className="aboutLead">
+            <p className="bigStatement">
+              I work across machine learning, computer vision, data analysis and modern web engineering —
+              connecting experiments to real interfaces.
             </p>
           </div>
-
-          <div className="skillGroups">
-            {skillGroups.map((group) => (
-              <div className="skillGroup" key={group.label}>
-                <h3>{group.label}</h3>
-                <div>
-                  {group.values.map((skill) => (
-                    <span key={skill}>{skill}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section philosophySection">
-        <SectionLabel>06 / HOW I WORK</SectionLabel>
-        <div className="sectionBody">
-          <div className="philosophyGrid">
-            <div>
-              <Code2 size={24} />
-              <h3>Build</h3>
-              <p>Turn requirements into maintainable models, APIs, interfaces, and data workflows.</p>
-            </div>
-            <div>
-              <Database size={24} />
-              <h3>Validate</h3>
-              <p>Use testing, data quality checks, evaluation metrics, and clear documentation to understand results.</p>
-            </div>
-            <div>
-              <BrainCircuit size={24} />
-              <h3>Improve</h3>
-              <p>Iterate quickly, optimize bottlenecks, and keep learning the tools needed for the next problem.</p>
+          <div className="aboutCopy">
+            <p>
+              My focus is practical AI: prepare the data, validate the outputs, build the service,
+              and make the result easy to use.
+            </p>
+            <p>
+              During my Machine Learning internship at Cognibot, I worked on model output review,
+              data validation, Python ETL automation, reporting and documentation.
+            </p>
+            <div className="factGrid">
+              <div><strong>20/20</strong><span>validated SketchMaster cases</span></div>
+              <div><strong>12.25ms</strong><span>average inference time</span></div>
+              <div><strong>22%</strong><span>output reduction after optimization</span></div>
+              <div><strong>7.30</strong><span>graduated CGPA / 10</span></div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="contactSection">
-        <div className="contactLabel">07 / CONTACT</div>
-        <div>
-          <p className="kicker">LET&apos;S BUILD SOMETHING USEFUL</p>
-          <h2>
-            Have a problem worth
-            <br />
-            <em>solving?</em>
-          </h2>
-          <p className="contactCopy">
-            I&apos;m open to entry-level opportunities across AI/ML, software engineering, data, and QA automation.
-          </p>
-          <div className="contactActions">
-            <a className="button buttonPrimary" href="mailto:s.rishikumar04@gmail.com">
-              s.rishikumar04@gmail.com <ArrowUpRight size={17} />
+      <section className="skillsSection sectionShell">
+        <div className="sectionHead">
+          <span className="sectionNumber">03</span>
+          <div>
+            <p className="eyebrow">TOOLS / STACK</p>
+            <h2>Built with<br /><em>curiosity.</em></h2>
+          </div>
+        </div>
+
+        <div className="skillWall">
+          {skills.map((skill, index) => (
+            <span key={skill} style={{ "--i": index } as React.CSSProperties}>{skill}</span>
+          ))}
+        </div>
+      </section>
+
+      <section id="contact" className="contactSection sectionShell">
+        <div className="sectionHead">
+          <span className="sectionNumber">04</span>
+          <div>
+            <p className="eyebrow">CONTACT</p>
+            <h2>Let&apos;s make<br />something <em>useful.</em></h2>
+          </div>
+        </div>
+
+        <div className="contactGrid">
+          <div className="contactBig">
+            <button onClick={copyEmail} className="emailButton" type="button">
+              <span>{copied ? "EMAIL COPIED" : "s.rishikumar04@gmail.com"}</span>
+              <Copy size={16} />
+            </button>
+          </div>
+
+          <div className="socialGrid">
+            <a href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
+              GitHub <Github size={15} />
             </a>
-            <a className="button buttonGhost" href="https://github.com/Rixshi04" target="_blank" rel="noreferrer">
-              GitHub <span className="socialMark">GH</span>
+            <a href="https://www.linkedin.com/in/rishi-kumar-632a58152/" target="_blank" rel="noreferrer">
+              LinkedIn <Linkedin size={15} />
+            </a>
+            <a href="mailto:s.rishikumar04@gmail.com">
+              Email <Mail size={15} />
             </a>
           </div>
         </div>
       </section>
 
-      <footer className="siteFooter">
-        <span>© 2026 Rishi Kumar</span>
-        <span>Next.js · TypeScript · Built for Vercel</span>
-        <a href="#top">Back to top ↑</a>
+      <footer className="footer">
+        <span>© 2026 RISHI KUMAR</span>
+        <span>MACHINE LEARNING · AI · COMPUTER VISION</span>
+        <a href="#top">BACK TO TOP ↑</a>
       </footer>
     </main>
   );
