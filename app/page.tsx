@@ -533,7 +533,7 @@ const installSharedSoundInteractions = () => {
   const onPointerDown = () => {
     const audio = sharedAudio;
     if (audio && audio.ctx.state === "suspended") {
-      audio.ctx.resume();
+      void audio.ctx.resume();
     }
   };
 
@@ -577,20 +577,23 @@ const installSharedSoundInteractions = () => {
 
     const magnitude = Math.abs(delta);
     const nowMs = performance.now();
+    const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+    const minDelta = mobile ? 6 : 3;
+    const minInterval = mobile ? 190 : 145;
 
-    if (magnitude < 3 || nowMs - audio.lastScrollTrigger < 145) return;
+    if (magnitude < minDelta || nowMs - audio.lastScrollTrigger < minInterval) return;
 
     const progress =
       currentY / Math.max(1, document.documentElement.scrollHeight - innerHeight);
     const directionOctave = delta < 0 ? 1 : 0;
     const scale = [0, 2, 4, 7, 9, 12];
-    const degree = Math.min(scale.length - 1, Math.floor(Math.min(1, magnitude / 24) * scale.length));
+    const degree = Math.min(scale.length - 1, Math.floor(Math.min(1, magnitude / (mobile ? 34 : 24)) * scale.length));
     const midi = 57 + directionOctave * 12 + scale[degree];
 
     audio.lastScrollTrigger = nowMs;
     playSharedNote(midi, {
-      duration: 0.42 + Math.min(0.28, magnitude / 80),
-      gain: 0.10 + Math.min(0.045, magnitude / 260),
+      duration: mobile ? 0.24 : 0.42 + Math.min(0.28, magnitude / 80),
+      gain: mobile ? 0.075 : 0.10 + Math.min(0.045, magnitude / 260),
       filter: 1500 + progress * 2600,
       detune: delta < 0 ? -7 : 5,
     });
@@ -875,20 +878,23 @@ export default function Home() {
     gsap.registerPlugin(ScrollTrigger);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const lenis = new Lenis({
+    const mobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+    const lenis = mobile ? null : new Lenis({
       autoRaf: false,
       anchors: true,
       lerp: 0.075,
       smoothWheel: true,
       wheelMultiplier: 0.84,
-      syncTouch: true,
+      syncTouch: false,
       respectReducedMotion: true,
     });
 
-    lenis.on("scroll", ScrollTrigger.update);
-    const tick = (time:number) => lenis.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    if (lenis) {
+      lenis.on("scroll", ScrollTrigger.update);
+      const tick = (time:number) => lenis.raf(time * 1000);
+      gsap.ticker.add(tick);
+      gsap.ticker.lagSmoothing(0);
+    }
 
     const root=document.documentElement;
     const onMove=(event:PointerEvent)=>{
@@ -998,8 +1004,10 @@ export default function Home() {
       sceneObservers.forEach((io)=>io.disconnect());
       window.removeEventListener("pointermove",onMove);
       window.removeEventListener("scroll",onScroll);
-      gsap.ticker.remove(tick);
-      lenis.destroy();
+      if (lenis) {
+        gsap.ticker.remove(tick);
+        lenis.destroy();
+      }
     };
   },[]);
 
