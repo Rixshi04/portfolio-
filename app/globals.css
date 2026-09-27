@@ -230,7 +230,9 @@ a:hover ~ .cursorRing{width:56px;height:56px}
 .reveal.isVisible{opacity:1;transform:none}
 .splitLineText{display:inline-block}
 .wordClip{display:inline-block;overflow:hidden;vertical-align:top}
-.word{display:inline-block;transform:translateY(105%);transition:transform .9s cubic-bezier(.77,0,.18,1)}
+.word{display:inline-block;transform:none;transition:transform .9s cubic-bezier(.77,0,.18,1)}
+.heroTitle .reveal{opacity:1;transform:none;overflow:visible}
+.heroTitle .word{will-change:transform}
 .isVisible .word{transform:translateY(0)}
 
 .tickerSection{overflow:hidden;background:var(--ink);color:var(--paper);border-bottom:1px solid var(--ink)}
