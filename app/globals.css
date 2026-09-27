@@ -956,3 +956,7 @@ html,body{overscroll-behavior-y:none}
   .contactPrompt{font-size:39px}
   .emailButton{font-size:24px}
 }
+
+/* Hero positioning pass */
+.heroTitleWrap{transform:translateY(-5vh)}
+@media(max-width:640px){.heroTitleWrap{transform:translateY(-3vh)}}
