@@ -119,111 +119,115 @@ function WireTerrain() {
 
     if (!gl) return;
 
-    const vertexShaderSource = `#version 300 es
-      precision highp float;
+    const vertexShaderSource = [
+      "#version 300 es",
+      "      precision highp float;",
+      "",
+      "      layout(location = 0) in vec3 aPosition;",
+      "",
+      "      uniform float uTime;",
+      "      uniform float uScroll;",
+      "      uniform float uDepth;",
+      "      uniform float uCameraHeight;",
+      "      uniform float uPitch;",
+      "      uniform float uYaw;",
+      "      uniform float uRoll;",
+      "      uniform vec2 uResolution;",
+      "",
+      "      out float vDepth;",
+      "      out float vHeight;",
+      "",
+      "      float hash(vec2 p) {",
+      "        p = fract(p * vec2(123.34, 345.45));",
+      "        p += dot(p, p + 34.345);",
+      "        return fract(p.x * p.y);",
+      "      }",
+      "",
+      "      float noise(vec2 p) {",
+      "        vec2 i = floor(p);",
+      "        vec2 f = fract(p);",
+      "        f = f * f * (3.0 - 2.0 * f);",
+      "",
+      "        float a = hash(i);",
+      "        float b = hash(i + vec2(1.0, 0.0));",
+      "        float c = hash(i + vec2(0.0, 1.0));",
+      "        float d = hash(i + vec2(1.0, 1.0));",
+      "",
+      "        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);",
+      "      }",
+      "",
+      "      float terrainHeight(float x, float z) {",
+      "        float valley = smoothstep(0.0, 3.8, abs(x));",
+      "        float n1 = noise(vec2(x * 0.75, z * 0.075));",
+      "        float n2 = noise(vec2(x * 1.6 + 19.0, z * 0.16));",
+      "        float n3 = sin(z * 0.055 + x * 0.7) * 0.28;",
+      "        float ridge = pow(valley, 1.25) * (1.7 + n1 * 4.8 + n2 * 2.4 + n3);",
+      "        float floorShape = (1.0 - valley) * (0.04 + noise(vec2(x * 0.35, z * 0.045)) * 0.07);",
+      "        return ridge + floorShape;",
+      "      }",
+      "",
+      "      mat3 rotX(float a) {",
+      "        float s = sin(a), c = cos(a);",
+      "        return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c);",
+      "      }",
+      "      mat3 rotY(float a) {",
+      "        float s = sin(a), c = cos(a);",
+      "        return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c);",
+      "      }",
+      "      mat3 rotZ(float a) {",
+      "        float s = sin(a), c = cos(a);",
+      "        return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0);",
+      "      }",
+      "",
+      "      void main() {",
+      "        float zWrapped = mod(aPosition.z + uScroll, uDepth);",
+      "        float z = max(0.3, zWrapped);",
+      "        float x = aPosition.x;",
+      "        float y = terrainHeight(x, z);",
+      "",
+      "        vec3 pos = vec3(x, y, z);",
+      "        pos.y -= uCameraHeight;",
+      "",
+      "        mat3 camera = rotZ(uRoll) * rotX(uPitch) * rotY(uYaw);",
+      "        pos = camera * pos;",
+      "",
+      "        float fov = 1.25;",
+      "        float depth = max(0.18, pos.z);",
+      "        float aspect = uResolution.x / max(1.0, uResolution.y);",
+      "",
+      "        float nx = (pos.x / (depth * fov)) / aspect;",
+      "        float ny = (pos.y / (depth * fov));",
+      "",
+      "        gl_Position = vec4(nx, ny, 0.5 + depth * 0.002, 1.0);",
+      "",
+      "        vDepth = depth;",
+      "        vHeight = y;",
+      "      }",
+      "    "
+    ].join("\n");
 
-      layout(location = 0) in vec3 aPosition;
-
-      uniform float uTime;
-      uniform float uScroll;
-      uniform float uDepth;
-      uniform float uCameraHeight;
-      uniform float uPitch;
-      uniform float uYaw;
-      uniform float uRoll;
-      uniform vec2 uResolution;
-
-      out float vDepth;
-      out float vHeight;
-
-      float hash(vec2 p) {
-        p = fract(p * vec2(123.34, 345.45));
-        p += dot(p, p + 34.345);
-        return fract(p.x * p.y);
-      }
-
-      float noise(vec2 p) {
-        vec2 i = floor(p);
-        vec2 f = fract(p);
-        f = f * f * (3.0 - 2.0 * f);
-
-        float a = hash(i);
-        float b = hash(i + vec2(1.0, 0.0));
-        float c = hash(i + vec2(0.0, 1.0));
-        float d = hash(i + vec2(1.0, 1.0));
-
-        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-      }
-
-      float terrainHeight(float x, float z) {
-        float valley = smoothstep(0.0, 3.8, abs(x));
-        float n1 = noise(vec2(x * 0.75, z * 0.075));
-        float n2 = noise(vec2(x * 1.6 + 19.0, z * 0.16));
-        float n3 = sin(z * 0.055 + x * 0.7) * 0.28;
-        float ridge = pow(valley, 1.25) * (1.7 + n1 * 4.8 + n2 * 2.4 + n3);
-        float floorShape = (1.0 - valley) * (0.04 + noise(vec2(x * 0.35, z * 0.045)) * 0.07);
-        return ridge + floorShape;
-      }
-
-      mat3 rotX(float a) {
-        float s = sin(a), c = cos(a);
-        return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c);
-      }
-      mat3 rotY(float a) {
-        float s = sin(a), c = cos(a);
-        return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c);
-      }
-      mat3 rotZ(float a) {
-        float s = sin(a), c = cos(a);
-        return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0);
-      }
-
-      void main() {
-        float zWrapped = mod(aPosition.z + uScroll, uDepth);
-        float z = max(0.3, zWrapped);
-        float x = aPosition.x;
-        float y = terrainHeight(x, z);
-
-        vec3 pos = vec3(x, y, z);
-        pos.y -= uCameraHeight;
-
-        mat3 camera = rotZ(uRoll) * rotX(uPitch) * rotY(uYaw);
-        pos = camera * pos;
-
-        float fov = 1.25;
-        float depth = max(0.18, pos.z);
-        float aspect = uResolution.x / max(1.0, uResolution.y);
-
-        float nx = (pos.x / (depth * fov)) / aspect;
-        float ny = (pos.y / (depth * fov));
-
-        gl_Position = vec4(nx, ny, 0.5 + depth * 0.002, 1.0);
-
-        vDepth = depth;
-        vHeight = y;
-      }
-    `;
-
-    const fragmentShaderSource = `#version 300 es
-      precision highp float;
-
-      uniform vec3 uColor;
-      uniform bool uFill;
-      uniform float uDepth;
-
-      in float vDepth;
-      out vec4 outColor;
-
-      void main() {
-        float fade = 1.0 - smoothstep(uDepth * 0.32, uDepth * 0.98, vDepth);
-        if (uFill) {
-          outColor = vec4(0.0, 0.0, 0.0, 1.0);
-        } else {
-          float glow = 0.45 + fade * 0.9;
-          outColor = vec4(uColor * glow, 1.0);
-        }
-      }
-    `;
+    const fragmentShaderSource = [
+      "#version 300 es",
+      "      precision highp float;",
+      "",
+      "      uniform vec3 uColor;",
+      "      uniform bool uFill;",
+      "      uniform float uDepth;",
+      "",
+      "      in float vDepth;",
+      "      out vec4 outColor;",
+      "",
+      "      void main() {",
+      "        float fade = 1.0 - smoothstep(uDepth * 0.32, uDepth * 0.98, vDepth);",
+      "        if (uFill) {",
+      "          outColor = vec4(0.0, 0.0, 0.0, 1.0);",
+      "        } else {",
+      "          float glow = 0.45 + fade * 0.9;",
+      "          outColor = vec4(uColor * glow, 1.0);",
+      "        }",
+      "      }",
+      "    "
+    ].join("\n");
 
     const createShader = (type: number, source: string) => {
       const shader = gl.createShader(type);
