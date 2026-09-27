@@ -355,6 +355,8 @@ function WireTerrain() {
       gl.depthFunc(gl.LESS);
       gl.enable(gl.CULL_FACE);
       gl.cullFace(gl.BACK);
+      gl.enable(gl.POLYGON_OFFSET_FILL);
+      gl.polygonOffset(1, 1);
 
       gl.useProgram(program);
       gl.bindVertexArray(vao);
@@ -374,6 +376,7 @@ function WireTerrain() {
       gl.uniform1i(uFill, 1);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
       gl.drawElements(gl.TRIANGLES, indexData.length, gl.UNSIGNED_INT, 0);
+      gl.disable(gl.POLYGON_OFFSET_FILL);
 
       // Wire pass.
       gl.enable(gl.BLEND);
@@ -437,6 +440,7 @@ export default function Home() {
 
       <section id="top" className="hero">
         <WireTerrain />
+        <div className="terrainSun" aria-hidden="true" />
         <div className="heroOverlay" />
         <div className="heroNoise" />
 
