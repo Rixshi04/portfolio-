@@ -368,9 +368,19 @@ function InteractiveMesh() {
 function SolarSystemBackdrop() {
   return (
     <div className="solarSystem" aria-hidden="true">
+      <svg className="solarFilterDefs" aria-hidden="true" width="0" height="0">
+        <defs>
+          <filter id="solarHeat" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise">
+              <animate attributeName="baseFrequency" dur="9s" values="0.010 0.016;0.014 0.010;0.010 0.016" repeatCount="indefinite" />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
       <div className="solarStars" />
       <div className="solarScene">
-        <div className="solarSun"><span /></div>
+        <div className="solarSun"><span /><b className="solarHeat" /></div>
         <div className="solarOrbit solarOrbit1"><div className="solarPlanetTrack"><i className="solarPlanet planet1" /></div></div>
         <div className="solarOrbit solarOrbit2"><div className="solarPlanetTrack"><i className="solarPlanet planet2" /></div></div>
         <div className="solarOrbit solarOrbit3"><div className="solarPlanetTrack"><i className="solarPlanet planet3" /></div></div>
@@ -665,7 +675,7 @@ export default function Home() {
     const onScroll=()=>{
       const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
       const progress=scrollY/max;
-      const solarProgress=Math.min(1,scrollY/Math.max(1,innerHeight*4.6));
+      const solarProgress=Math.min(1,scrollY/Math.max(1,innerHeight*7.2));
       root.style.setProperty("--scroll-progress",String(progress));
       root.style.setProperty("--solar-progress",String(solarProgress));
     };
