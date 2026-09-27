@@ -178,7 +178,7 @@ a:hover ~ .cursorRing{width:56px;height:56px}
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  padding:116px 3vw 26px;
+  padding:132px 2.4vw 34px;
   border-bottom:1px solid var(--line);
   overflow:hidden;
 }
@@ -204,18 +204,15 @@ a:hover ~ .cursorRing{width:56px;height:56px}
   font:8px/1.3 "DM Mono",monospace;
   letter-spacing:.05em;
 }
-.heroTitleWrap{position:relative;z-index:2;margin:auto 0}
-.heroMicro{font:9px "DM Mono",monospace;margin-bottom:18px}
-.heroTitle{margin:0;font-size:clamp(82px,16.6vw,235px);line-height:.77;letter-spacing:-.1em;font-weight:700}
+.heroTitleWrap{position:relative;z-index:2;display:flex;flex:1;flex-direction:column;justify-content:center;margin:0;min-height:0}
+.heroMicro{font:10px/1.25 "DM Mono",monospace;margin-bottom:22px;letter-spacing:.06em;color:#55534d}
+.heroTitle{margin:0;font-size:clamp(110px,18vw,320px);line-height:.70;letter-spacing:-.105em;font-weight:700;max-width:98vw}
 .accentText{color:var(--accent)}
-.heroDescription{
-  max-width:500px;
-  margin:32px 0 0;
-}
+.heroDescription{max-width:640px;margin:30px 0 0}
 .heroDescription p{
   margin:0;
   color:#4f4f4a;
-  font:12px/1.7 "DM Mono",monospace;
+  font:13px/1.65 "DM Mono",monospace;
 }
 .heroSideNote{
   position:absolute;
@@ -856,4 +853,16 @@ html,body{overscroll-behavior-y:none}
 
 .interactiveMesh + .ambientOrbs {
   z-index: 1;
+}
+
+.heroUtility{display:grid;grid-template-columns:minmax(260px,640px) auto;align-items:end;gap:32px;margin-top:28px}
+.heroHeroCTA{justify-self:start}
+.heroHeroCTA a{display:inline-flex;align-items:center;gap:10px;padding:13px 17px;border:1px solid rgba(11,11,11,.24);color:var(--ink);font:9px "DM Mono",monospace;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;transition:background .3s ease,color .3s ease,transform .3s ease}
+.heroHeroCTA a:hover{background:var(--ink);color:var(--paper);transform:translateY(-2px)}
+.heroMeta{grid-column:1 / -1;display:flex;justify-content:space-between;gap:20px;color:#696761;font:8px/1.3 "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase}
+.heroSideNote{right:2.4vw;bottom:18%;font:9px "DM Mono",monospace;writing-mode:vertical-rl;transform:rotate(180deg)}
+@media(max-width:960px){
+  .heroTitle{font-size:clamp(92px,18vw,220px)}
+  .heroUtility{grid-template-columns:1fr;gap:18px}
+  .heroMeta{grid-column:auto;display:flex}
 }
