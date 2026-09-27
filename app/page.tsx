@@ -381,6 +381,12 @@ function SolarSystemBackdrop() {
       <div className="solarStars" />
       <div className="solarScene">
         <div className="solarSun"><span /><b className="solarHeat" /></div>
+        <div className="solarFlare">
+          <i className="flareCore" />
+          <i className="flareStreak" />
+          <i className="flareGhost flareGhostA" />
+          <i className="flareGhost flareGhostB" />
+        </div>
         <div className="solarOrbit solarOrbit1"><div className="solarPlanetTrack"><i className="solarPlanet planet1" /></div></div>
         <div className="solarOrbit solarOrbit2"><div className="solarPlanetTrack"><i className="solarPlanet planet2" /></div></div>
         <div className="solarOrbit solarOrbit3"><div className="solarPlanetTrack"><i className="solarPlanet planet3" /></div></div>
