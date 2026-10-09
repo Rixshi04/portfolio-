@@ -1244,7 +1244,7 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal className="careerRail" delay={220}>
-            <div><span>1-MONTH INTERNSHIP</span><strong>GRADTWIN</strong><small>REAL-TIME CLIENT WORK</small></div>
+            <div><span>01 MAR 2026 — 01 JUN 2026</span><strong>GRADTWIN</strong><small>REAL-TIME CLIENT WORK · 4-MONTH INTERNSHIP</small></div>
             <div><span>09.2025 — 10.2025</span><strong>COGNIBOT</strong><small>MACHINE LEARNING INTERN</small></div>
             <div><span>02.2025</span><strong>NSIC</strong><small>AI MODEL DEVELOPMENT USING MLOPS</small></div>
             <div><span>02.2026</span><strong>DELOITTE</strong><small>DATA ANALYTICS & VISUALISATION</small></div>
