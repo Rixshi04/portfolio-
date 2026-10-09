@@ -1220,7 +1220,7 @@ export default function Home() {
             <p className="eyebrow">ABOUT / EXPERIENCE</p>
             <h2><SplitLineText>MODEL</SplitLineText><br /><em><SplitLineText>TO PRODUCT.</SplitLineText></em></h2>
           </div>
-          <p className="sectionMeta">COGNIBOT<br />MACHINE LEARNING INTERN</p>
+          <p className="sectionMeta">GRADTWIN · COGNIBOT<br />INTERNSHIP EXPERIENCE</p>
         </div>
 
         <div className="aboutGrid">
@@ -1233,6 +1233,7 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal className="aboutCopy" delay={120}>
+            <p>At GradTwin, I contributed to real-time client work, supporting practical project tasks and learning to work against client requirements.</p>
             <p>At Cognibot, I worked across model output review, data quality, Python ETL automation, reporting, validation and documentation.</p>
             <p>My projects follow the same loop: <strong>build → validate → improve.</strong></p>
             <div className="factGrid">
@@ -1243,6 +1244,7 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal className="careerRail" delay={220}>
+            <div><span>1-MONTH INTERNSHIP</span><strong>GRADTWIN</strong><small>REAL-TIME CLIENT WORK</small></div>
             <div><span>09.2025 — 10.2025</span><strong>COGNIBOT</strong><small>MACHINE LEARNING INTERN</small></div>
             <div><span>02.2025</span><strong>NSIC</strong><small>AI MODEL DEVELOPMENT USING MLOPS</small></div>
             <div><span>02.2026</span><strong>DELOITTE</strong><small>DATA ANALYTICS & VISUALISATION</small></div>
