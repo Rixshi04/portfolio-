@@ -1220,7 +1220,7 @@ export default function Home() {
             <p className="eyebrow">ABOUT / EXPERIENCE</p>
             <h2><SplitLineText>MODEL</SplitLineText><br /><em><SplitLineText>TO PRODUCT.</SplitLineText></em></h2>
           </div>
-          <p className="sectionMeta">GRADTWIN<br />DATA SCIENCE INTERN</p>
+          <p className="sectionMeta">COGNIBOT<br />MACHINE LEARNING INTERN</p>
         </div>
 
         <div className="aboutGrid">
@@ -1233,17 +1233,17 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal className="aboutCopy" delay={120}>
-            <p>During my one-month Data Science internship at GradTwin, I worked on real-time client projects and gained practical experience in understanding client needs and contributing to delivery-focused work.</p>
-            <p>The experience strengthened my approach to problem-solving, collaboration and turning requirements into practical outcomes.</p>
+            <p>At Cognibot, I worked across model output review, data quality, Python ETL automation, reporting, validation and documentation.</p>
+            <p>My projects follow the same loop: <strong>build → validate → improve.</strong></p>
             <div className="factGrid">
-              <div><strong>01 MONTH</strong><span>Internship duration</span></div>
-              <div><strong>REAL-TIME</strong><span>Client project work</span></div>
-              <div><strong>DATA</strong><span>Science internship</span></div>
-              <div><strong>7.30</strong><span>Graduated CGPA / 10</span></div>
+              <div><strong>20/20</strong><span>SketchMaster cases validated</span></div>
+              <div><strong>12.25ms</strong><span>average inference time</span></div>
+              <div><strong>22%</strong><span>output reduction after optimization</span></div>
+              <div><strong>7.30</strong><span>graduated CGPA / 10</span></div>
             </div>
           </Reveal>
           <Reveal className="careerRail" delay={220}>
-            <div><span>ONE-MONTH INTERNSHIP</span><strong>GRADTWIN</strong><small>DATA SCIENCE INTERN · REAL-TIME CLIENT WORK</small></div>
+            <div><span>09.2025 — 10.2025</span><strong>COGNIBOT</strong><small>MACHINE LEARNING INTERN</small></div>
             <div><span>02.2025</span><strong>NSIC</strong><small>AI MODEL DEVELOPMENT USING MLOPS</small></div>
             <div><span>02.2026</span><strong>DELOITTE</strong><small>DATA ANALYTICS & VISUALISATION</small></div>
           </Reveal>
