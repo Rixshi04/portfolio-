@@ -1250,6 +1250,24 @@ export default function Home() {
             <div><span>02.2026</span><strong>DELOITTE</strong><small>DATA ANALYTICS & VISUALISATION</small></div>
           </Reveal>
         </div>
+
+        <div className="educationBlock">
+          <div className="educationHeading">
+            <span className="eyebrow">EDUCATION</span>
+            <span className="educationIndex">01 / ACADEMIC BACKGROUND</span>
+          </div>
+          <div className="educationCard">
+            <div className="educationMain">
+              <span className="educationDegree">B.E. · COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)</span>
+              <h3>Sathyabama Institute of Science and Technology</h3>
+              <p>Chennai, Tamil Nadu</p>
+            </div>
+            <div className="educationMeta">
+              <strong>7.30 <small>/ 10 CGPA</small></strong>
+              <span>GRADUATED · 2026</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="skills" className="skillsSection sectionShell">
